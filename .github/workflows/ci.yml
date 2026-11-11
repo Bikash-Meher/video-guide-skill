@@ -1,4 +1,4 @@
-name: CI — Plan-only smoke test
+name: CI — Setup + Smoke Test
 
 on:
   push:
@@ -6,40 +6,63 @@ on:
   pull_request:
 
 jobs:
-  smoke-test:
-    name: Validate example recipe (plan-only)
-    runs-on: ubuntu-latest
+  # ── Test: auto setup works on clone (the main guarantee) ──────────────────
+  bootstrap:
+    name: Auto-setup on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
 
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh && echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      # bootstrap.py installs uv, creates .venv, installs deps, verifies tools
+      - name: Run bootstrap.py (auto setup)
+        run: python bootstrap.py
 
-      - name: Install dependencies
-        run: uv pip install --system opencv-python pillow imageio-ffmpeg numpy
-        # edge-tts skipped in CI — TTS is network-dependent;
-        # plan_only with --no_tts_cache would be the full test.
-
-      - name: Validate example recipe (schema check)
+      # Quick sanity: tool_executor dispatches correctly
+      - name: Smoke test — validate_recipe tool (schema check only)
+        shell: bash
         run: |
-          python - <<'EOF'
-          import json, sys, pathlib
-          recipe = json.loads(pathlib.Path("examples/recipe_create_exam.json").read_text())
-          assert "timeline_mapping" in recipe, "Missing timeline_mapping"
-          assert len(recipe["timeline_mapping"]) > 0, "Empty timeline_mapping"
-          print(f"OK — {len(recipe['timeline_mapping'])} steps, voice={recipe.get('default_voice')}, tone={recipe.get('tone')}")
-          EOF
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            PYTHON=".venv/Scripts/python"
+          else
+            PYTHON=".venv/bin/python"
+          fi
+          $PYTHON -c "
+          import json, pathlib, sys
+          recipe = json.loads(pathlib.Path('examples/recipe_create_exam.json').read_text())
+          assert 'timeline_mapping' in recipe
+          assert len(recipe['timeline_mapping']) > 0
+          print(f'OK — {len(recipe[\"timeline_mapping\"])} steps, voice={recipe.get(\"default_voice\")}')
+          "
 
-      - name: Check tool_executor imports
-        run: python -c "import tool_executor; print('tool_executor OK')"
+      # Verify all 5 tools are callable
+      - name: Verify 5 tools registered
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            PYTHON=".venv/Scripts/python"
+          else
+            PYTHON=".venv/bin/python"
+          fi
+          $PYTHON -c "
+          from tool_executor import TOOLS
+          expected = {'extract_frames','scaffold_recipe','validate_recipe','render_guide','create_guide'}
+          assert expected == set(TOOLS.keys()), f'Missing tools: {expected - set(TOOLS.keys())}'
+          print('All 5 tools OK:', list(TOOLS.keys()))
+          "
 
-  mcp-import-check:
+  # ── Test: MCP server imports cleanly ──────────────────────────────────────
+  mcp-import:
     name: MCP server import check
     runs-on: ubuntu-latest
 
@@ -48,9 +71,39 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh && echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      - name: Install mcp + deps
-        run: uv pip install --system mcp opencv-python pillow imageio-ffmpeg numpy
+      - name: Run bootstrap.py
+        run: python bootstrap.py
       - name: Check mcp_server imports
-        run: python -c "import mcp_server; print('mcp_server OK')"
+        run: .venv/bin/python -c "import mcp_server; print('mcp_server OK')"
+
+  # ── Test: setup.sh works on Linux ─────────────────────────────────────────
+  setup-sh:
+    name: setup.sh on Linux
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run setup.sh
+        run: bash setup.sh
+
+  # ── Test: auto_recipe scene detector imports ───────────────────────────────
+  scene-detector:
+    name: auto_recipe scene detector
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run bootstrap.py
+        run: python bootstrap.py
+      - name: Import auto_recipe
+        run: |
+          .venv/bin/python -c "
+          from auto_recipe import detect_scenes, scaffold_recipe
+          print('auto_recipe OK — scene detector ready')
+          "

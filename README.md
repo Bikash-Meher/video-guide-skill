@@ -38,22 +38,41 @@ Works for **any app, website, portal, SaaS, or web application**.
 
 ---
 
-## 🚀 Quick Install
+## 🚀 Setup — One Command, Any OS, Any Agent
+
+> **Clone → run one command → ready. No manual pip, no PATH tweaks, no prior uv required.**
 
 ```bash
-# Option A — uv (recommended)
-uv pip install git+https://github.com/YOUR_USERNAME/video-guide-skill.git
-
-# Option B — pip
-pip install git+https://github.com/YOUR_USERNAME/video-guide-skill.git
-
-# Option C — clone and install editable
+# 1. Clone
 git clone https://github.com/YOUR_USERNAME/video-guide-skill.git
 cd video-guide-skill
-uv pip install -e .
+
+# 2. Auto-setup (works on Windows, Linux, macOS — Python 3.11+ only requirement)
+python bootstrap.py
 ```
 
-**Requirements:** Python ≥ 3.11, internet for TTS, FFmpeg (bundled via `imageio-ffmpeg`).
+`bootstrap.py` automatically:
+- ✅ Checks Python ≥ 3.11
+- ✅ Installs `uv` if missing (via pip → then official installer fallback)
+- ✅ Creates `.venv` and installs all dependencies
+- ✅ Verifies all 5 tools import correctly
+- ✅ Prints a ready-to-use cheatsheet
+
+**OS-specific shortcuts (same result as bootstrap.py):**
+
+| OS | Command |
+|---|---|
+| Windows (PowerShell) | `.\setup.ps1` |
+| Linux / macOS / WSL | `bash setup.sh` |
+| Any OS (universal) | `python bootstrap.py` |
+
+**pip fallback (no uv needed):**
+```bash
+pip install -r requirements.txt
+pip install -e .
+```
+
+**Requirements:** Python ≥ 3.11, internet (for TTS + first-time dep download). FFmpeg is bundled.
 
 ---
 
@@ -234,12 +253,17 @@ Full schema: [`schemas/recipe.schema.json`](schemas/recipe.schema.json)
 
 ```
 video-guide-skill/
+├── bootstrap.py           # 🔧 Universal auto-setup (run this after clone)
+├── setup.ps1              # 🔧 Windows PowerShell setup shortcut
+├── setup.sh               # 🔧 Linux / macOS setup shortcut
 ├── engine.py              # Core rendering engine (CV2 + Pillow + Edge TTS)
-├── auto_recipe.py         # Scene detection + recipe scaffolder (NEW)
+├── auto_recipe.py         # Scene detection + recipe scaffolder
 ├── tool_executor.py       # JSON-in / JSON-out tool dispatcher (5 tools)
 ├── mcp_server.py          # MCP stdio server (Claude Code, Cursor)
 ├── skill_manifest.json    # Unified skill manifest
 ├── pyproject.toml         # pip/uv installable package
+├── requirements.txt       # pip fallback (no uv needed)
+├── .python-version        # Pins Python 3.11 for uv
 ├── schemas/
 │   ├── recipe.schema.json # JSON Schema for recipe validation
 │   └── openai_tools.json  # OpenAI function-calling definitions
@@ -249,7 +273,7 @@ video-guide-skill/
 ├── antigravity/
 │   └── SKILL.md           # Antigravity skill definition
 └── .github/workflows/
-    └── ci.yml             # Smoke-test CI
+    └── ci.yml             # CI: bootstrap on Windows + Linux + macOS
 ```
 
 ---

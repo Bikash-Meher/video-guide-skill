@@ -46,3 +46,13 @@ packages = ["."]
 "schemas" = "share/video-guide-skill/schemas"
 "examples" = "share/video-guide-skill/examples"
 "antigravity" = "share/video-guide-skill/antigravity"
+
+# ── uv configuration ──────────────────────────────────────────────────────────
+[tool.uv]
+# Allow uv sync / uv run to work without extra flags
+dev-dependencies = []
+
+# ── Project scripts (registered after install) ────────────────────────────────
+# video-guide-mcp   → starts MCP stdio server
+# video-guide       → CLI render shortcut
+# video-guide-setup → re-runs bootstrap verification
