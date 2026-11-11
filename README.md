@@ -11,7 +11,18 @@
 
 ## ✨ What it does
 
-Given a screen recording (`.mp4`, `.mov`, `.mkv`) and a **recipe JSON** that describes steps:
+You give the agent **only a screen recording path**. The skill does everything else:
+
+```
+[You] ──► video path only
+  │
+  ├─ 1. Extract frames at 3 fps   (FFmpeg, bundled — no install)
+  ├─ 2. Detect UI scene changes   (histogram diff, automatic)
+  ├─ 3. Scaffold draft recipe     (steps, timing, frame refs)
+  ├─ 4. Agent inspects scenes     (vision → writes narrations)
+  ├─ 5. Validate recipe           (TTS synthesis + timing check)
+  └─ 6. Render MP4 + SRT          (h264, aac, captions)
+```
 
 | Feature | Detail |
 |---|---|
@@ -21,6 +32,7 @@ Given a screen recording (`.mp4`, `.mov`, `.mkv`) and a **recipe JSON** that des
 | 🎵 Music | Auto-ducking background music |
 | 📋 Captions | `.srt` subtitle file alongside every render |
 | ⚡ Frame extraction | Built-in FFmpeg at 3 fps (configurable) |
+| 🤖 Auto recipe | Scene detection → draft → agent fills narrations via vision |
 
 Works for **any app, website, portal, SaaS, or web application**.
 
@@ -47,22 +59,23 @@ uv pip install -e .
 
 ## 🤖 Usage by Agent Tool
 
+> **In every tool below — the agent only needs the video path. No recipe writing, no manual steps.**
+
 ### Antigravity (Google Deepmind)
 
-Antigravity can discover and invoke this skill natively via its skill system.
-
-**Method 1 — Copy skill manifest to Antigravity config:**
+**Method 1 — Copy skill to Antigravity config:**
 ```bash
-cp antigravity/SKILL.md ~/.gemini/config/skills/video-guide/SKILL.md
+# Windows PowerShell
+New-Item -ItemType Directory -Force "C:\Users\<you>\.gemini\config\skills\video-guide"
+Copy-Item "antigravity\SKILL.md" "C:\Users\<you>\.gemini\config\skills\video-guide\SKILL.md"
 ```
 
-**Method 2 — Use MCP server (see Claude Code config below, same format for Antigravity MCP).**
-
-**Invoke in chat:**
+**Invoke in chat — just paste the video path:**
 ```
-Extract frames from C:/recordings/my_app.mp4 at 3 fps,
-then create a recipe for a 5-step guide and render it.
+Create a user guide from C:/recordings/my_app.mp4
 ```
+Antigravity calls `create_guide`, inspects the returned thumbnails via its vision model,
+writes narrations, validates, and renders — no manual input needed.
 
 ---
 
@@ -205,13 +218,15 @@ Full schema: [`schemas/recipe.schema.json`](schemas/recipe.schema.json)
 
 ---
 
-## 🛠️ Three Tools
+## 🛠️ Five Tools — Start with `create_guide`
 
-| Tool | What it does | Returns |
+| Tool | Input required | Does |
 |---|---|---|
-| `extract_frames` | FFmpeg frame extraction at N fps | `frames_dir`, `frame_count` |
-| `validate_recipe` | Plan-only: TTS + timing check | `valid`, `warnings`, `plan_text` |
-| `render_guide` | Full MP4 render | `mp4_path`, `srt_path`, `size_mb` |
+| ⭐ **`create_guide`** | `video_path`, `output_path` | Full auto pipeline — just drop a video |
+| `scaffold_recipe` | `frames_dir` | Scene detect → draft recipe + thumbnails for agent |
+| `validate_recipe` | `recipe_json` | TTS + timing check, returns warnings |
+| `render_guide` | `recipe_json`, `output_path` | Full MP4 render |
+| `extract_frames` | `video_path` | FFmpeg extraction only |
 
 ---
 
@@ -220,7 +235,8 @@ Full schema: [`schemas/recipe.schema.json`](schemas/recipe.schema.json)
 ```
 video-guide-skill/
 ├── engine.py              # Core rendering engine (CV2 + Pillow + Edge TTS)
-├── tool_executor.py       # JSON-in / JSON-out tool dispatcher
+├── auto_recipe.py         # Scene detection + recipe scaffolder (NEW)
+├── tool_executor.py       # JSON-in / JSON-out tool dispatcher (5 tools)
 ├── mcp_server.py          # MCP stdio server (Claude Code, Cursor)
 ├── skill_manifest.json    # Unified skill manifest
 ├── pyproject.toml         # pip/uv installable package
@@ -238,16 +254,26 @@ video-guide-skill/
 
 ---
 
-## 🔄 Typical Agent Workflow
+## 🔄 Agent Workflow — Zero Manual Input
 
 ```
-1. User: "Make a user guide for the login flow from rec.mp4"
-2. Agent calls: extract_frames(video_path="rec.mp4", fps=3)
-3. Agent inspects frames, drafts recipe JSON
-4. Agent calls: validate_recipe(recipe_json="...")  → checks for overlaps
-5. Agent adjusts timings if warnings
-6. Agent calls: render_guide(recipe_json="...", output_path="guide.mp4")
-7. Done — guide.mp4 + guide.srt delivered to user
+User: "Create a user guide from C:/recordings/portal.mp4"
+
+Agent calls: create_guide(video_path="portal.mp4", output_path="guide.mp4")
+
+  Internally:
+    ► extract_frames  → 300 frames at 3 fps
+    ► detect scenes   → 8 UI transition points found
+    ► scaffold recipe → draft JSON + 8 thumbnails returned
+
+Agent: inspects thumbnails via vision model
+       writes narration for each step
+       fills highlight_boxes for key UI elements
+
+Agent calls: validate_recipe(recipe_json="<filled>")   → 0 warnings
+Agent calls: render_guide(recipe_json="<filled>", output_path="guide.mp4")
+
+Done → guide.mp4 (narrated, HUD, captions) + guide.srt
 ```
 
 ---

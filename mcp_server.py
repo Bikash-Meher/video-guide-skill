@@ -53,7 +53,7 @@ except ImportError as e:
         "MCP SDK not found. Install with: pip install mcp  or  uv add mcp\n" + str(e)
     )
 
-from tool_executor import validate_recipe, render_guide, extract_frames
+from tool_executor import validate_recipe, render_guide, extract_frames, scaffold_recipe, create_guide
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("video-guide-mcp")
@@ -63,6 +63,90 @@ server = Server("video-guide-skill")
 # ── Tool definitions ───────────────────────────────────────────────────────────
 
 TOOL_DEFS: list[Tool] = [
+    Tool(
+        name="create_guide",
+        description=(
+            "MASTER TOOL — Agent needs only a video_path and output_path. "
+            "Automatically extracts frames at 3 fps, detects UI scene transitions, "
+            "and returns a draft recipe with scene thumbnails for the agent to inspect. "
+            "The agent then fills narrations via vision and calls validate_recipe + render_guide. "
+            "Use this as the starting point for ANY new user-guide video."
+        ),
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "video_path": {
+                    "type": "string",
+                    "description": "Absolute path to the screen recording (.mp4, .mov, .mkv).",
+                },
+                "output_path": {
+                    "type": "string",
+                    "description": "Absolute path for the final output .mp4.",
+                },
+                "fps": {
+                    "type": "number",
+                    "description": "Frame extraction rate. Default 3 (recommended for UI).",
+                    "default": 3.0,
+                },
+                "voice": {
+                    "type": "string",
+                    "description": "Edge TTS voice. Default en-IN-NeerjaNeural.",
+                    "default": "en-IN-NeerjaNeural",
+                },
+                "tone": {
+                    "type": "string",
+                    "enum": ["professional", "energetic", "calm", "corporate", "friendly"],
+                    "default": "friendly",
+                },
+                "app_name": {
+                    "type": "string",
+                    "description": "Name of the app/website being recorded (used in title/narration context).",
+                },
+                "sensitivity": {
+                    "type": "number",
+                    "description": "Scene-cut sensitivity 0-1. Lower = more cuts. Default 0.18.",
+                    "default": 0.18,
+                },
+            },
+            "required": ["video_path", "output_path"],
+        },
+    ),
+    Tool(
+        name="scaffold_recipe",
+        description=(
+            "Auto-detect scene transitions in extracted frames and produce a draft recipe JSON. "
+            "Returns scene_frames paths and base64 thumbnails so the agent can inspect "
+            "each scene visually and fill in narration text. "
+            "Call extract_frames first if frames_dir doesn't exist yet."
+        ),
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "frames_dir": {
+                    "type": "string",
+                    "description": "Directory containing *_frame.png files.",
+                },
+                "video_path": {
+                    "type": "string",
+                    "description": "Original video path (stored in recipe metadata).",
+                },
+                "fps": {"type": "number", "default": 3.0},
+                "sensitivity": {
+                    "type": "number",
+                    "description": "Scene-cut sensitivity. Lower = more steps detected.",
+                    "default": 0.18,
+                },
+                "voice": {"type": "string", "default": "en-IN-NeerjaNeural"},
+                "tone": {
+                    "type": "string",
+                    "enum": ["professional", "energetic", "calm", "corporate", "friendly"],
+                    "default": "friendly",
+                },
+                "app_name": {"type": "string", "default": "Application"},
+            },
+            "required": ["frames_dir"],
+        },
+    ),
     Tool(
         name="validate_recipe",
         description=(
@@ -151,7 +235,11 @@ async def call_tool(req: CallToolRequest) -> CallToolResult:
     log.info("Tool call: %s  args=%s", name, list(args.keys()))
 
     try:
-        if name == "validate_recipe":
+        if name == "create_guide":
+            result = create_guide(**args)
+        elif name == "scaffold_recipe":
+            result = scaffold_recipe(**args)
+        elif name == "validate_recipe":
             result = validate_recipe(**args)
         elif name == "render_guide":
             result = render_guide(**args)
