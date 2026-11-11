@@ -1,0 +1,85 @@
+{
+  "openai_tool_schema_version": "2024-01",
+  "description": "Video Guide Skill — OpenAI-compatible function-calling definitions. Paste the 'tools' array into your system/assistant config.",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "validate_recipe",
+        "description": "Validate a Video Guide recipe JSON without rendering. Performs TTS synthesis and timing checks. Returns warnings, overlap alerts, and the full plan text. ALWAYS call this before render_guide to catch audio-overlap issues early.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "recipe_json": {
+              "type": "string",
+              "description": "The complete recipe JSON as a string. Must follow the Video Guide recipe schema (see schemas/recipe.schema.json)."
+            }
+          },
+          "required": ["recipe_json"],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "render_guide",
+        "description": "Render a complete user-guide MP4 video from a recipe JSON. Produces narration (Edge TTS), animated HUD dock overlays, click/zoom annotations, background music, and an SRT caption file. Requires screen-recording frames on disk at paths referenced in the recipe.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "recipe_json": {
+              "type": "string",
+              "description": "The complete recipe JSON as a string."
+            },
+            "output_path": {
+              "type": "string",
+              "description": "Absolute file path for the output .mp4. E.g. C:/Users/me/guides/my_guide.mp4"
+            },
+            "export_srt": {
+              "type": "boolean",
+              "description": "If true (default), also write a .srt caption file next to the mp4.",
+              "default": true
+            }
+          },
+          "required": ["recipe_json", "output_path"],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "extract_frames",
+        "description": "Extract still frames from a screen recording video at a chosen FPS (default 3). Writes 0001_frame.png, 0002_frame.png … into output_dir. The returned frames_dir and frame filenames are used in recipe timeline_mapping steps.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "video_path": {
+              "type": "string",
+              "description": "Absolute path to the screen recording file (.mp4, .mov, .mkv, .avi)."
+            },
+            "fps": {
+              "type": "number",
+              "description": "Frames per second to extract. 3 fps is recommended for UI walkthroughs (one frame every ~0.33 s).",
+              "default": 3.0
+            },
+            "output_dir": {
+              "type": "string",
+              "description": "Directory to write extracted frame PNGs into. Defaults to <video_dir>/<video_stem>_frames/ if omitted."
+            }
+          },
+          "required": ["video_path"],
+          "additionalProperties": false
+        }
+      }
+    }
+  ],
+  "executor": {
+    "description": "To execute a tool call, run tool_executor.py with the tool name and arguments.",
+    "examples": {
+      "shell": "echo '{\"tool\":\"extract_frames\",\"video_path\":\"C:/rec.mp4\",\"fps\":3}' | python tool_executor.py",
+      "python": "from tool_executor import extract_frames; result = extract_frames(video_path='C:/rec.mp4', fps=3)"
+    }
+  }
+}

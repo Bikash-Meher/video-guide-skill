@@ -1,0 +1,501 @@
+{
+  "source_video": "C:\\Users\\meher\\Downloads\\Recording 2026-11-10 142703.mp4",
+  "input_source": "video",
+  "frames_dir": "C:\\Users\\meher\\.gemini\\antigravity\\brain\\a270e23d-0903-4a59-ab8c-c2ce437c4f71\\scratch\\rec_142703_frames",
+  "fps_extracted": 3.0,
+  "branding_text": "Krishna Vikash ERP • Create Exam",
+  "default_voice": "en-IN-NeerjaNeural",
+  "tone": "friendly",
+  "dock_mode": "below",
+  "total_duration": 88.0,
+  "fps": 30,
+  "background_music": true,
+  "timeline_mapping": [
+    {
+      "start_sec": 0.0,
+      "end_sec": 7.8,
+      "source_frame_start": 70,
+      "source_frame_end": 150
+    },
+    {
+      "start_sec": 7.8,
+      "end_sec": 9.5,
+      "source_frame_start": 300,
+      "source_frame_end": 300
+    },
+    {
+      "start_sec": 9.5,
+      "end_sec": 14.6,
+      "source_frame_start": 300,
+      "source_frame_end": 405
+    },
+    {
+      "start_sec": 14.6,
+      "end_sec": 17.6,
+      "source_frame_start": 440,
+      "source_frame_end": 515
+    },
+    {
+      "start_sec": 17.6,
+      "end_sec": 21.2,
+      "source_frame_start": 610,
+      "source_frame_end": 1000
+    },
+    {
+      "start_sec": 21.2,
+      "end_sec": 22.0,
+      "source_frame_start": 1000,
+      "source_frame_end": 1000
+    },
+    {
+      "start_sec": 22.0,
+      "end_sec": 24.4,
+      "source_frame_start": 1050,
+      "source_frame_end": 1150
+    },
+    {
+      "start_sec": 24.4,
+      "end_sec": 26.6,
+      "source_frame_start": 1340,
+      "source_frame_end": 1445
+    },
+    {
+      "start_sec": 26.6,
+      "end_sec": 28.4,
+      "source_frame_start": 1485,
+      "source_frame_end": 1500
+    },
+    {
+      "start_sec": 28.4,
+      "end_sec": 31.6,
+      "source_frame_start": 1610,
+      "source_frame_end": 1650
+    },
+    {
+      "start_sec": 31.6,
+      "end_sec": 35.2,
+      "source_frame_start": 1720,
+      "source_frame_end": 1775
+    },
+    {
+      "start_sec": 35.2,
+      "end_sec": 38.6,
+      "source_frame_start": 2050,
+      "source_frame_end": 2085
+    },
+    {
+      "start_sec": 38.6,
+      "end_sec": 41.4,
+      "source_frame_start": 3100,
+      "source_frame_end": 3160
+    },
+    {
+      "start_sec": 41.4,
+      "end_sec": 44.2,
+      "source_frame_start": 3395,
+      "source_frame_end": 3430
+    },
+    {
+      "start_sec": 44.2,
+      "end_sec": 48.0,
+      "source_frame_start": 2350,
+      "source_frame_end": 2410
+    },
+    {
+      "start_sec": 48.0,
+      "end_sec": 52.2,
+      "source_frame_start": 3190,
+      "source_frame_end": 3425
+    },
+    {
+      "start_sec": 52.2,
+      "end_sec": 56.2,
+      "source_frame_start": 4840,
+      "source_frame_end": 4960
+    },
+    {
+      "start_sec": 56.2,
+      "end_sec": 60.4,
+      "source_frame_start": 5600,
+      "source_frame_end": 5630
+    },
+    {
+      "start_sec": 60.4,
+      "end_sec": 69.5,
+      "source_frame_start": 5350,
+      "source_frame_end": 5420
+    },
+    {
+      "start_sec": 69.5,
+      "end_sec": 72.1,
+      "source_frame_start": 5630,
+      "source_frame_end": 5850
+    },
+    {
+      "start_sec": 72.1,
+      "end_sec": 75.9,
+      "source_frame_start": 5880,
+      "source_frame_end": 5960
+    },
+    {
+      "start_sec": 75.9,
+      "end_sec": 79.7,
+      "source_frame_start": 5990,
+      "source_frame_end": 6025
+    },
+    {
+      "start_sec": 79.7,
+      "end_sec": 88.0,
+      "source_frame_start": 6050,
+      "source_frame_end": 6170
+    }
+  ],
+  "steps": [
+    {
+      "id": "intro",
+      "start_time": 0.3,
+      "active_start": 0.0,
+      "active_end": 7.8,
+      "step_num": "INTRO",
+      "step_title": "Open EXAMS Module",
+      "narration": "Welcome to Krishna Vikash ERP. Click the Exams tile on the home portal to get started.",
+      "sub": "Select the EXAMS module card on the ERP Home screen to get started.",
+      "spotlight": {
+        "rects": [[412, 460, 754, 675]],
+        "dim_alpha": 0.38
+      },
+      "boxes": [
+        {
+          "rect": [412, 460, 754, 675],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255],
+          "shape": "rounded_rect",
+          "radius": 16,
+          "cursor_ring": [583, 567],
+          "pulse": true
+        }
+      ],
+      "arrows": [
+        {
+          "from": [905, 567],
+          "to": [766, 567],
+          "tag": "CLICK EXAMS",
+          "dir": "auto"
+        }
+      ]
+    },
+    {
+      "id": "step1",
+      "start_time": 8.1,
+      "active_start": 7.8,
+      "active_end": 14.6,
+      "step_num": "STEP 1",
+      "step_title": "Click \"+ ADD\" Button",
+      "narration": "In Exam Management, click the green Add button at the top right to create a new exam.",
+      "sub": "Step 1: Click \"+ ADD\" at the top right of the Exam Management page.",
+      "spotlight": {
+        "rects": [[1750, 236, 1878, 293]],
+        "dim_alpha": 0.34
+      },
+      "boxes": [
+        {
+          "rect": [1750, 236, 1878, 293],
+          "color": [46, 213, 115],
+          "glow": [46, 213, 115],
+          "shape": "rounded_rect",
+          "cursor_ring": [1814, 264],
+          "pulse": true
+        }
+      ],
+      "arrows": [
+        {
+          "from": [1630, 264],
+          "to": [1740, 264],
+          "tag": "+ ADD EXAM",
+          "dir": "auto"
+        }
+      ]
+    },
+    {
+      "id": "step2",
+      "start_time": 14.9,
+      "active_start": 14.6,
+      "active_end": 22.0,
+      "step_num": "STEP 2",
+      "step_title": "Select Exam Type & Enter Name",
+      "narration": "Choose the Exam Type from the dropdown, such as Half Yearly Exam, and type the Exam Name.",
+      "sub": "Step 2: Select Exam Type* (HALF YEARLY EXAM) and enter the Exam Name*.",
+      "boxes": [
+        {
+          "rect": [358, 304, 736, 396],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255]
+        },
+        {
+          "rect": [744, 304, 1120, 396],
+          "color": [0, 200, 255],
+          "glow": [0, 132, 255]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [740, 238],
+          "to": [740, 296],
+          "tag": "EXAM TYPE & NAME",
+          "dir": "auto"
+        }
+      ]
+    },
+    {
+      "id": "step3",
+      "start_time": 22.3,
+      "active_start": 22.0,
+      "active_end": 28.4,
+      "step_num": "STEP 3",
+      "step_title": "Set Dates, Institute & Class",
+      "narration": "Pick the Start Date and End Date, then select the Institute and target Class.",
+      "sub": "Step 3: Choose Start Date*, End Date*, Institute*, and Class* (e.g., Class V).",
+      "boxes": [
+        {
+          "rect": [1128, 304, 1888, 396],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255]
+        },
+        {
+          "rect": [1128, 412, 1888, 502],
+          "color": [0, 200, 255],
+          "glow": [0, 132, 255]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [1702, 575],
+          "to": [1702, 510],
+          "tag": "INSTITUTE & CLASS",
+          "dir": "auto"
+        }
+      ]
+    },
+    {
+      "id": "step4",
+      "start_time": 28.7,
+      "active_start": 28.4,
+      "active_end": 35.2,
+      "step_num": "STEP 4",
+      "step_title": "Set Submission & Correction Dates",
+      "narration": "Now pick the Mark Submission Date and Mark Correction Date for evaluation deadlines.",
+      "sub": "Step 4: Pick Mark Submission Date* (24-11-2026) and Correction Date* (28-11-2026).",
+      "boxes": [
+        {
+          "rect": [744, 516, 1120, 606],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255]
+        },
+        {
+          "rect": [1128, 516, 1504, 606],
+          "color": [0, 200, 255],
+          "glow": [0, 132, 255]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [1625, 570],
+          "to": [1514, 570],
+          "tag": "MARK DEADLINES",
+          "dir": "auto"
+        }
+      ]
+    },
+    {
+      "id": "step5",
+      "start_time": 35.5,
+      "active_start": 35.2,
+      "active_end": 44.2,
+      "step_num": "STEP 5",
+      "step_title": "Enable Exam Subjects & Extra Subject",
+      "narration": "Scroll to Subject Details and toggle on your subjects. Check Extra Subject to exclude marks from total.",
+      "sub": "Step 5: Toggle ON active subjects; check EXTRA SUBJECT if excluded from total marks.",
+      "boxes": [
+        {
+          "rect": [316, 224, 368, 720],
+          "color": [46, 213, 115],
+          "glow": [46, 213, 115]
+        },
+        {
+          "rect": [714, 666, 770, 714],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [475, 360],
+          "to": [378, 360],
+          "tag": "ENABLE SUBJECTS",
+          "dir": "auto"
+        },
+        {
+          "from": [595, 690],
+          "to": [704, 690],
+          "tag": "EXTRA (NOT IN TOTAL)",
+          "dir": "auto"
+        }
+      ]
+    },
+    {
+      "id": "step6",
+      "start_time": 44.5,
+      "active_start": 44.2,
+      "active_end": 52.2,
+      "step_num": "STEP 6",
+      "step_title": "Enter Theory Marks & Duration",
+      "narration": "Enter Theory Marks and duration in minutes for each subject. Duration must stay above zero.",
+      "sub": "Step 6: Fill Theory Mark (50 / 20) and Theory Duration in minutes (60 / 30).",
+      "spotlight": {
+        "rects": [[944, 130, 1264, 728]],
+        "dim_alpha": 0.28
+      },
+      "boxes": [
+        {
+          "rect": [950, 195, 1063, 725],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255]
+        },
+        {
+          "rect": [1080, 195, 1255, 725],
+          "color": [0, 200, 255],
+          "glow": [0, 132, 255]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [840, 330],
+          "to": [940, 330],
+          "tag": "MARKS & MINS",
+          "dir": "auto"
+        }
+      ]
+    },
+    {
+      "id": "step7",
+      "start_time": 52.5,
+      "active_start": 52.2,
+      "active_end": 60.4,
+      "step_num": "STEP 7",
+      "step_title": "Schedule Subject Date & Time",
+      "narration": "Next, click the calendar icon on the right to set the exam date and start time for each active subject.",
+      "sub": "Step 7: Schedule each subject's date and start time (e.g., 15:00).",
+      "spotlight": {
+        "rects": [[1620, 118, 1858, 636]],
+        "dim_alpha": 0.30
+      },
+      "boxes": [
+        {
+          "rect": [1626, 122, 1852, 630],
+          "color": [0, 200, 255],
+          "glow": [0, 132, 255]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [1515, 290],
+          "to": [1616, 290],
+          "tag": "SCHEDULE TIME",
+          "dir": "auto"
+        }
+      ]
+    },
+    {
+      "id": "step8",
+      "start_time": 60.7,
+      "active_start": 60.4,
+      "active_end": 69.5,
+      "step_num": "STEP 8",
+      "step_title": "Verify Auto-Calculated Max Marks",
+      "narration": "Scroll up to review. Notice Max Marks totals two hundred automatically, excluding extra subjects.",
+      "sub": "Step 8: Verify details — Max Marks (200) auto-totals core subjects only.",
+      "spotlight": {
+        "rects": [[280, 405, 692, 495]],
+        "dim_alpha": 0.34
+      },
+      "boxes": [
+        {
+          "rect": [286, 412, 686, 488],
+          "color": [46, 213, 115],
+          "glow": [46, 213, 115],
+          "pulse": true
+        }
+      ],
+      "arrows": []
+    },
+    {
+      "id": "step9",
+      "start_time": 69.8,
+      "active_start": 69.5,
+      "active_end": 75.9,
+      "step_num": "STEP 9",
+      "step_title": "Click \"SAVE\" Button",
+      "narration": "Once everything looks right, click the Save button at the bottom right to submit.",
+      "sub": "Step 9: Click \"SAVE\" at the bottom right to finalize your exam.",
+      "spotlight": {
+        "rects": [[1776, 892, 1892, 952]],
+        "dim_alpha": 0.36
+      },
+      "boxes": [
+        {
+          "rect": [1782, 898, 1886, 945],
+          "color": [46, 213, 115],
+          "glow": [46, 213, 115],
+          "shape": "rounded_rect",
+          "cursor_ring": [1834, 922],
+          "pulse": true
+        }
+      ],
+      "arrows": [
+        {
+          "from": [1660, 922],
+          "to": [1772, 922],
+          "tag": "SAVE EXAM",
+          "dir": "auto"
+        }
+      ]
+    },
+    {
+      "id": "step10",
+      "start_time": 76.2,
+      "active_start": 75.9,
+      "active_end": 79.7,
+      "step_num": "STEP 10",
+      "step_title": "Exam Created Confirmation",
+      "narration": "Exam created successfully!",
+      "sub": "The confirmation modal confirms your exam has been saved.",
+      "boxes": [
+        {
+          "rect": [646, 404, 1273, 682],
+          "color": [46, 213, 115],
+          "glow": [46, 213, 115],
+          "shape": "rounded_rect"
+        }
+      ],
+      "arrows": []
+    },
+    {
+      "id": "complete",
+      "start_time": 80.0,
+      "active_start": 79.7,
+      "active_end": 88.0,
+      "step_num": "COMPLETE",
+      "step_title": "Listed in Exam Management",
+      "narration": "Your exam is now saved and active in the Exam Management table. Thank you for watching!",
+      "sub": "Complete! You can now view or publish the exam from Exam Records.",
+      "boxes": [
+        {
+          "rect": [286, 514, 1900, 950],
+          "color": [46, 213, 115],
+          "glow": [46, 213, 115]
+        }
+      ],
+      "arrows": []
+    }
+  ]
+}

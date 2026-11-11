@@ -1,0 +1,56 @@
+name: CI — Plan-only smoke test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  smoke-test:
+    name: Validate example recipe (plan-only)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh && echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: uv pip install --system opencv-python pillow imageio-ffmpeg numpy
+        # edge-tts skipped in CI — TTS is network-dependent;
+        # plan_only with --no_tts_cache would be the full test.
+
+      - name: Validate example recipe (schema check)
+        run: |
+          python - <<'EOF'
+          import json, sys, pathlib
+          recipe = json.loads(pathlib.Path("examples/recipe_create_exam.json").read_text())
+          assert "timeline_mapping" in recipe, "Missing timeline_mapping"
+          assert len(recipe["timeline_mapping"]) > 0, "Empty timeline_mapping"
+          print(f"OK — {len(recipe['timeline_mapping'])} steps, voice={recipe.get('default_voice')}, tone={recipe.get('tone')}")
+          EOF
+
+      - name: Check tool_executor imports
+        run: python -c "import tool_executor; print('tool_executor OK')"
+
+  mcp-import-check:
+    name: MCP server import check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh && echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - name: Install mcp + deps
+        run: uv pip install --system mcp opencv-python pillow imageio-ffmpeg numpy
+      - name: Check mcp_server imports
+        run: python -c "import mcp_server; print('mcp_server OK')"

@@ -1,0 +1,139 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/YOUR_USERNAME/video-guide-skill/schemas/recipe.schema.json",
+  "title": "Video Guide Recipe",
+  "description": "Recipe JSON for the Video Guide engine. Defines metadata, voice/tone, and step-by-step timeline mappings.",
+  "type": "object",
+  "required": ["title", "default_voice", "tone", "output_resolution", "timeline_mapping"],
+  "additionalProperties": false,
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Human-readable title of this guide (used in filename suggestions)."
+    },
+    "source_video": {
+      "type": "string",
+      "description": "Path to the original screen recording (optional — used by extract_frames)."
+    },
+    "frames_dir": {
+      "type": "string",
+      "description": "Directory containing extracted frame PNGs (0001_frame.png …)."
+    },
+    "input_source": {
+      "type": "string",
+      "enum": ["auto", "video", "frames"],
+      "default": "auto",
+      "description": "'auto' auto-detects; 'frames' reads from frames_dir; 'video' reads directly from source_video."
+    },
+    "source_frame_fps": {
+      "type": "number",
+      "default": 3.0,
+      "description": "FPS at which frames were extracted. Used for frame-index-to-time translation."
+    },
+    "default_voice": {
+      "type": "string",
+      "description": "Edge TTS voice name. E.g. en-IN-NeerjaNeural, en-US-GuyNeural.",
+      "examples": [
+        "en-IN-NeerjaNeural", "en-IN-PrabhatNeural",
+        "en-US-JennyNeural", "en-US-GuyNeural",
+        "en-GB-SoniaNeural", "en-GB-RyanNeural"
+      ]
+    },
+    "tone": {
+      "type": "string",
+      "enum": ["professional", "energetic", "calm", "corporate", "friendly"],
+      "description": "Tone preset controlling TTS rate/pitch and HUD visual style."
+    },
+    "output_resolution": {
+      "type": "object",
+      "required": ["width", "height"],
+      "properties": {
+        "width": {"type": "integer", "examples": [1920]},
+        "height": {"type": "integer", "examples": [1080]}
+      }
+    },
+    "total_duration": {
+      "type": "number",
+      "description": "Total video duration in seconds. Must be >= sum of all step windows."
+    },
+    "audio_tracks_dir": {
+      "type": "string",
+      "description": "Directory for cached TTS audio clips (auto-created if omitted)."
+    },
+    "timeline_mapping": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Ordered list of narrated steps.",
+      "items": {
+        "type": "object",
+        "required": ["step", "active_start", "active_end", "narration", "source_frame"],
+        "additionalProperties": true,
+        "properties": {
+          "step": {"type": "integer", "minimum": 1},
+          "label": {"type": "string"},
+          "active_start": {"type": "number", "description": "Step start time in seconds."},
+          "active_end": {"type": "number", "description": "Step end time in seconds."},
+          "source_frame": {
+            "type": "string",
+            "description": "Path or filename of the frame PNG to show during this step."
+          },
+          "source_frame_start_3fps": {
+            "type": "integer",
+            "description": "Start frame index (at 3 fps) for video-source mode."
+          },
+          "source_frame_end_3fps": {
+            "type": "integer",
+            "description": "End frame index (at 3 fps) for video-source mode."
+          },
+          "narration": {"type": "string", "description": "Text to synthesize as voiceover."},
+          "highlight_boxes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["x", "y", "w", "h"],
+              "properties": {
+                "x": {"type": "integer"},
+                "y": {"type": "integer"},
+                "w": {"type": "integer"},
+                "h": {"type": "integer"},
+                "color": {"type": "string", "default": "#00C4FF"},
+                "label": {"type": "string"},
+                "style": {"type": "string", "enum": ["solid", "dashed", "pulse"]}
+              }
+            }
+          },
+          "click_indicator": {
+            "type": "object",
+            "properties": {
+              "x": {"type": "integer"},
+              "y": {"type": "integer"},
+              "radius": {"type": "integer", "default": 20}
+            }
+          },
+          "zoom": {
+            "type": "object",
+            "properties": {
+              "x": {"type": "integer"},
+              "y": {"type": "integer"},
+              "w": {"type": "integer"},
+              "h": {"type": "integer"},
+              "scale": {"type": "number", "default": 2.0}
+            }
+          },
+          "hud_dock": {
+            "type": "object",
+            "properties": {
+              "position": {
+                "type": "string",
+                "enum": ["below", "above", "left", "right",
+                         "bottom-left", "bottom-right",
+                         "top-left", "top-right"],
+                "default": "below"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

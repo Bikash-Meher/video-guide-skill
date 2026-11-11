@@ -1,0 +1,706 @@
+{
+  "source_video": "C:\\Users\\meher\\Downloads\\newSale-Recording 2026-11-11 222819.mp4",
+  "frames_dir": "C:\\Users\\meher\\Downloads\\newsale frames",
+  "fps_extracted": 3.0,
+  "branding_text": "Krishna Vikash ERP • Sales Guide",
+  "default_voice": "en-IN-PrabhatNeural",
+  "default_rate": "+8%",
+  "dock_mode": "below",
+  "pad_bottom": 130,
+  "branding_y": 9,
+  "total_duration": 115.5,
+  "fps": 30,
+  "background_music": true,
+  "timeline_mapping": [
+    {
+      "start_sec": 0.0,
+      "end_sec": 5.0,
+      "source_frame_start": 4,
+      "source_frame_end": 4
+    },
+    {
+      "start_sec": 5.0,
+      "end_sec": 7.8,
+      "source_frame_start": 108,
+      "source_frame_end": 154
+    },
+    {
+      "start_sec": 7.8,
+      "end_sec": 11.2,
+      "source_frame_start": 214,
+      "source_frame_end": 214
+    },
+    {
+      "start_sec": 11.2,
+      "end_sec": 14.0,
+      "source_frame_start": 222,
+      "source_frame_end": 354
+    },
+    {
+      "start_sec": 14.0,
+      "end_sec": 18.0,
+      "source_frame_start": 354,
+      "source_frame_end": 354
+    },
+    {
+      "start_sec": 18.0,
+      "end_sec": 19.4,
+      "source_frame_start": 354,
+      "source_frame_end": 374
+    },
+    {
+      "start_sec": 19.4,
+      "end_sec": 21.8,
+      "source_frame_start": 374,
+      "source_frame_end": 374
+    },
+    {
+      "start_sec": 21.8,
+      "end_sec": 23.2,
+      "source_frame_start": 456,
+      "source_frame_end": 500
+    },
+    {
+      "start_sec": 23.2,
+      "end_sec": 25.2,
+      "source_frame_start": 594,
+      "source_frame_end": 694
+    },
+    {
+      "start_sec": 25.2,
+      "end_sec": 26.6,
+      "source_frame_start": 694,
+      "source_frame_end": 734
+    },
+    {
+      "start_sec": 26.6,
+      "end_sec": 29.2,
+      "source_frame_start": 734,
+      "source_frame_end": 734
+    },
+    {
+      "start_sec": 29.2,
+      "end_sec": 32.5,
+      "source_frame_start": 764,
+      "source_frame_end": 834
+    },
+    {
+      "start_sec": 32.5,
+      "end_sec": 33.7,
+      "source_frame_start": 884,
+      "source_frame_end": 894
+    },
+    {
+      "start_sec": 33.7,
+      "end_sec": 36.5,
+      "source_frame_start": 894,
+      "source_frame_end": 894
+    },
+    {
+      "start_sec": 36.5,
+      "end_sec": 40.5,
+      "source_frame_start": 903,
+      "source_frame_end": 963
+    },
+    {
+      "start_sec": 40.5,
+      "end_sec": 41.9,
+      "source_frame_start": 963,
+      "source_frame_end": 974
+    },
+    {
+      "start_sec": 41.9,
+      "end_sec": 44.0,
+      "source_frame_start": 974,
+      "source_frame_end": 1024
+    },
+    {
+      "start_sec": 44.0,
+      "end_sec": 46.8,
+      "source_frame_start": 1074,
+      "source_frame_end": 1074
+    },
+    {
+      "start_sec": 46.8,
+      "end_sec": 48.0,
+      "source_frame_start": 1074,
+      "source_frame_end": 1124
+    },
+    {
+      "start_sec": 48.0,
+      "end_sec": 50.0,
+      "source_frame_start": 1354,
+      "source_frame_end": 1374
+    },
+    {
+      "start_sec": 50.0,
+      "end_sec": 52.5,
+      "source_frame_start": 1495,
+      "source_frame_end": 1514
+    },
+    {
+      "start_sec": 52.5,
+      "end_sec": 56.3,
+      "source_frame_start": 1645,
+      "source_frame_end": 1674
+    },
+    {
+      "start_sec": 56.3,
+      "end_sec": 59.3,
+      "source_frame_start": 1764,
+      "source_frame_end": 1914
+    },
+    {
+      "start_sec": 59.3,
+      "end_sec": 61.8,
+      "source_frame_start": 1914,
+      "source_frame_end": 2014
+    },
+    {
+      "start_sec": 61.8,
+      "end_sec": 63.6,
+      "source_frame_start": 2014,
+      "source_frame_end": 2014
+    },
+    {
+      "start_sec": 63.6,
+      "end_sec": 67.2,
+      "source_frame_start": 2054,
+      "source_frame_end": 2150
+    },
+    {
+      "start_sec": 67.2,
+      "end_sec": 71.2,
+      "source_frame_start": 2150,
+      "source_frame_end": 2150
+    },
+    {
+      "start_sec": 71.2,
+      "end_sec": 73.4,
+      "source_frame_start": 2225,
+      "source_frame_end": 2255
+    },
+    {
+      "start_sec": 73.4,
+      "end_sec": 76.4,
+      "source_frame_start": 2364,
+      "source_frame_end": 2744
+    },
+    {
+      "start_sec": 76.4,
+      "end_sec": 78.9,
+      "source_frame_start": 2884,
+      "source_frame_end": 3304
+    },
+    {
+      "start_sec": 78.9,
+      "end_sec": 82.0,
+      "source_frame_start": 3344,
+      "source_frame_end": 3490
+    },
+    {
+      "start_sec": 82.0,
+      "end_sec": 83.5,
+      "source_frame_start": 3490,
+      "source_frame_end": 3514
+    },
+    {
+      "start_sec": 83.5,
+      "end_sec": 86.8,
+      "source_frame_start": 3514,
+      "source_frame_end": 3514
+    },
+    {
+      "start_sec": 86.8,
+      "end_sec": 88.3,
+      "source_frame_start": 3521,
+      "source_frame_end": 3574
+    },
+    {
+      "start_sec": 88.3,
+      "end_sec": 91.5,
+      "source_frame_start": 3574,
+      "source_frame_end": 3574
+    },
+    {
+      "start_sec": 91.5,
+      "end_sec": 93.2,
+      "source_frame_start": 3760,
+      "source_frame_end": 3844
+    },
+    {
+      "start_sec": 93.2,
+      "end_sec": 95.0,
+      "source_frame_start": 3854,
+      "source_frame_end": 3944
+    },
+    {
+      "start_sec": 95.0,
+      "end_sec": 99.5,
+      "source_frame_start": 3974,
+      "source_frame_end": 3974
+    },
+    {
+      "start_sec": 99.5,
+      "end_sec": 101.0,
+      "source_frame_start": 3974,
+      "source_frame_end": 4032
+    },
+    {
+      "start_sec": 101.0,
+      "end_sec": 104.5,
+      "source_frame_start": 4054,
+      "source_frame_end": 4094
+    },
+    {
+      "start_sec": 104.5,
+      "end_sec": 106.7,
+      "source_frame_start": 4094,
+      "source_frame_end": 4094
+    },
+    {
+      "start_sec": 106.7,
+      "end_sec": 115.5,
+      "source_frame_start": 4194,
+      "source_frame_end": 4194
+    }
+  ],
+  "steps": [
+    {
+      "id": "intro",
+      "start_time": 0.4,
+      "active_start": 0.0,
+      "active_end": 7.8,
+      "step_num": "INTRO",
+      "step_title": "Krishna Vikash ERP • Student Store Sale",
+      "narration": "Welcome to Krishna Vikash ERP. Let's walk through how to sell store products to a student.",
+      "sub": "Welcome! Select the INVENTORY module to create a new student sale.",
+      "boxes": [
+        {
+          "rect": [404, 622, 765, 801],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [875, 712],
+          "to": [775, 712],
+          "tag": "INVENTORY",
+          "tag_pos": [940, 712],
+          "dir": "left"
+        }
+      ]
+    },
+    {
+      "id": "step1",
+      "start_time": 8.1,
+      "active_start": 7.8,
+      "active_end": 14.0,
+      "step_num": "STEP 1",
+      "step_title": "Open \"Sales And Service\"",
+      "narration": "In the left sidebar, click Sales and Service under Inventory Management.",
+      "sub": "Step 1: Click \"Sales And Service\" in the left navigation sidebar.",
+      "boxes": [
+        {
+          "rect": [12, 502, 240, 542],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [345, 522],
+          "to": [250, 522],
+          "tag": "CLICK HERE",
+          "tag_pos": [410, 522],
+          "dir": "left"
+        }
+      ]
+    },
+    {
+      "id": "step2",
+      "start_time": 14.3,
+      "active_start": 14.0,
+      "active_end": 19.4,
+      "step_num": "STEP 2",
+      "step_title": "Click \"NEW SALES\" Button",
+      "narration": "Click the orange New Sales button to start a student transaction.",
+      "sub": "Step 2: Click the orange \"NEW SALES\" button to open the Student Sale form.",
+      "boxes": [
+        {
+          "rect": [1635, 318, 1760, 362],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [1530, 340],
+          "to": [1625, 340],
+          "tag": "NEW SALES",
+          "tag_pos": [1460, 340],
+          "dir": "right"
+        }
+      ]
+    },
+    {
+      "id": "step3",
+      "start_time": 19.7,
+      "active_start": 19.4,
+      "active_end": 26.6,
+      "step_num": "STEP 3",
+      "step_title": "Search & Select Student",
+      "narration": "Search for the student by control number or name, then select them to load their profile.",
+      "sub": "Step 3: Search by student Control No or name and select the matching record.",
+      "boxes": [
+        {
+          "rect": [1170, 180, 1865, 224],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255],
+          "label": "STUDENT SEARCH"
+        }
+      ],
+      "arrows": [
+        {
+          "from": [1518, 120],
+          "to": [1518, 172],
+          "tag": "SEARCH STUDENT",
+          "tag_pos": [1518, 96],
+          "dir": "down"
+        }
+      ]
+    },
+    {
+      "id": "step4",
+      "start_time": 26.9,
+      "active_start": 26.6,
+      "active_end": 33.7,
+      "step_num": "STEP 4",
+      "step_title": "Select the Store",
+      "narration": "Open the Select Store dropdown and choose the store, such as Student Needs, Bargarh.",
+      "sub": "Step 4: Choose the store from the \"Select Store\" dropdown menu.",
+      "boxes": [
+        {
+          "rect": [294, 448, 546, 488],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255],
+          "label": "STORE"
+        }
+      ],
+      "arrows": [
+        {
+          "from": [660, 468],
+          "to": [556, 468],
+          "tag": "SELECT STORE",
+          "tag_pos": [735, 468],
+          "dir": "left"
+        }
+      ]
+    },
+    {
+      "id": "step5",
+      "start_time": 34.0,
+      "active_start": 33.7,
+      "active_end": 41.9,
+      "step_num": "STEP 5",
+      "step_title": "Choose Payment Mode",
+      "narration": "Select the Payment Mode in which money is received, like Cash, UPI, Card, or Pocket Money.",
+      "sub": "Step 5: Select how money is received (Cash, UPI, Card, Net Banking, or Pocket Money).",
+      "boxes": [
+        {
+          "rect": [834, 492, 1345, 536],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [715, 514],
+          "to": [824, 514],
+          "tag": "PAYMENT MODE",
+          "tag_pos": [625, 514],
+          "dir": "right"
+        }
+      ]
+    },
+    {
+      "id": "step6",
+      "start_time": 42.2,
+      "active_start": 41.9,
+      "active_end": 48.0,
+      "step_num": "STEP 6",
+      "step_title": "Enter Remarks (Optional)",
+      "narration": "Add any notes or reference details in the Remark field if required.",
+      "sub": "Step 6: Enter optional remarks or transaction notes in the Remark field.",
+      "boxes": [
+        {
+          "rect": [834, 580, 1345, 624],
+          "color": [0, 200, 255],
+          "glow": [0, 132, 255]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [715, 602],
+          "to": [824, 602],
+          "tag": "REMARK",
+          "tag_pos": [660, 602],
+          "dir": "right"
+        }
+      ]
+    },
+    {
+      "id": "step7",
+      "start_time": 48.3,
+      "active_start": 48.0,
+      "active_end": 56.3,
+      "step_num": "STEP 7",
+      "step_title": "Select Product & Add Rows",
+      "narration": "Select a product under Sales Items, enter the quantity, and click Add Sales Item for more products.",
+      "sub": "Step 7: Pick an Item, enter Quantity, and click \"ADD SALES ITEM\" for more rows.",
+      "boxes": [
+        {
+          "rect": [482, 768, 856, 818],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255]
+        },
+        {
+          "rect": [1166, 768, 1256, 818],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255]
+        },
+        {
+          "rect": [1680, 654, 1838, 697],
+          "color": [46, 213, 115],
+          "glow": [46, 213, 115]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [1565, 675],
+          "to": [1670, 675],
+          "tag": "ADD ITEM",
+          "tag_pos": [1505, 675],
+          "dir": "right"
+        }
+      ]
+    },
+    {
+      "id": "step8",
+      "start_time": 56.6,
+      "active_start": 56.3,
+      "active_end": 63.6,
+      "step_num": "STEP 8",
+      "step_title": "Set Quantity & Free Quantity",
+      "narration": "Enter total Quantity, and add Free Quantity for complimentary units; the amount updates live.",
+      "sub": "Step 8: Enter Quantity (5) and Free Quantity (1); free units are deducted from billing.",
+      "boxes": [
+        {
+          "rect": [1166, 730, 1255, 774],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255]
+        },
+        {
+          "rect": [1276, 730, 1392, 774],
+          "color": [46, 213, 115],
+          "glow": [46, 213, 115]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [1334, 840],
+          "to": [1334, 782],
+          "tag": "FREE QUANTITY",
+          "tag_pos": [1334, 864],
+          "dir": "up"
+        }
+      ]
+    },
+    {
+      "id": "step9",
+      "start_time": 63.9,
+      "active_start": 63.6,
+      "active_end": 71.2,
+      "step_num": "STEP 9",
+      "step_title": "Apply Unit Discount",
+      "narration": "Scroll right to enter a Unit Discount in rupees; percentage and total adjust automatically.",
+      "sub": "Step 9: Enter Unit Discount (₹10); discount percentage and bill total update live.",
+      "boxes": [
+        {
+          "rect": [1260, 688, 1396, 734],
+          "color": [0, 200, 255],
+          "glow": [0, 132, 255]
+        },
+        {
+          "rect": [1412, 688, 1534, 734],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [1473, 800],
+          "to": [1473, 742],
+          "tag": "UNIT DISCOUNT",
+          "tag_pos": [1473, 822],
+          "dir": "up"
+        }
+      ]
+    },
+    {
+      "id": "step10",
+      "start_time": 71.5,
+      "active_start": 71.2,
+      "active_end": 78.9,
+      "step_num": "STEP 10",
+      "step_title": "Verify Taxes & Add More Items",
+      "narration": "Check SGST, CGST, and row totals on the right, then add any remaining products.",
+      "sub": "Step 10: Verify GST & discount totals, then add more items like Pen and Yoga Mat.",
+      "boxes": [
+        {
+          "rect": [340, 625, 1840, 815],
+          "color": [0, 200, 255],
+          "glow": [0, 132, 255],
+          "label": "SALES ITEMS"
+        }
+      ],
+      "arrows": []
+    },
+    {
+      "id": "step11",
+      "start_time": 79.2,
+      "active_start": 78.9,
+      "active_end": 86.8,
+      "step_num": "STEP 11",
+      "step_title": "Remove an Item Row (If Needed)",
+      "narration": "To delete an unwanted row, click its red trash icon; the remaining rows renumber and re-total.",
+      "sub": "Step 11: Click the red Trash icon under Action to remove any unwanted item row.",
+      "boxes": [
+        {
+          "rect": [400, 616, 464, 658],
+          "color": [255, 100, 100],
+          "glow": [255, 60, 60],
+          "label": "DELETE ROW"
+        }
+      ],
+      "arrows": [
+        {
+          "from": [300, 637],
+          "to": [392, 637],
+          "tag": "REMOVE",
+          "tag_pos": [245, 637],
+          "dir": "right"
+        }
+      ]
+    },
+    {
+      "id": "step12",
+      "start_time": 87.1,
+      "active_start": 86.8,
+      "active_end": 93.2,
+      "step_num": "STEP 12",
+      "step_title": "Review Total & Click \"SAVE\"",
+      "narration": "Review the final Total Amount, then click the green Save button to record the sale.",
+      "sub": "Step 12: Verify the final Total Amount and click \"SAVE\" at the bottom right.",
+      "boxes": [
+        {
+          "rect": [1354, 224, 1862, 268],
+          "color": [0, 200, 255],
+          "glow": [0, 132, 255]
+        },
+        {
+          "rect": [1540, 790, 1642, 834],
+          "color": [46, 213, 115],
+          "glow": [46, 213, 115]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [1430, 812],
+          "to": [1530, 812],
+          "tag": "SAVE SALE",
+          "tag_pos": [1360, 812],
+          "dir": "right"
+        }
+      ]
+    },
+    {
+      "id": "step13",
+      "start_time": 93.5,
+      "active_start": 93.2,
+      "active_end": 101.0,
+      "step_num": "STEP 13",
+      "step_title": "Click \"PRINT\" on Tax Invoice",
+      "narration": "Once saved, the Tax Invoice opens automatically. Click Print to generate a receipt.",
+      "sub": "Step 13: Click the blue \"PRINT\" button at the top left of the Tax Invoice page.",
+      "boxes": [
+        {
+          "rect": [270, 68, 394, 111],
+          "color": [255, 180, 0],
+          "glow": [0, 168, 255]
+        },
+        {
+          "rect": [910, 105, 1264, 916],
+          "color": [0, 200, 255],
+          "glow": [0, 132, 255],
+          "label": "TAX INVOICE"
+        }
+      ],
+      "arrows": [
+        {
+          "from": [332, 185],
+          "to": [332, 120],
+          "tag": "PRINT",
+          "tag_pos": [332, 210],
+          "dir": "up"
+        }
+      ]
+    },
+    {
+      "id": "step14",
+      "start_time": 101.3,
+      "active_start": 101.0,
+      "active_end": 106.7,
+      "step_num": "STEP 14",
+      "step_title": "Save Invoice as PDF",
+      "narration": "Select Save as PDF and click Save to download the invoice.",
+      "sub": "Step 14: Choose \"Save as PDF\" in the print dialog and click \"Save\".",
+      "boxes": [
+        {
+          "rect": [920, 760, 1038, 830],
+          "color": [46, 213, 115],
+          "glow": [46, 213, 115]
+        }
+      ],
+      "arrows": [
+        {
+          "from": [820, 795],
+          "to": [912, 795],
+          "tag": "SAVE PDF",
+          "tag_pos": [755, 795],
+          "dir": "right"
+        }
+      ]
+    },
+    {
+      "id": "step15",
+      "start_time": 107.0,
+      "active_start": 106.7,
+      "active_end": 115.5,
+      "step_num": "COMPLETE",
+      "step_title": "Student Sale Completed!",
+      "narration": "Student sale completed! Your Tax Invoice is ready and saved in Vidya ERP.",
+      "sub": "Sale completed! The student's purchase and Tax Invoice are now recorded in Vidya ERP.",
+      "boxes": [
+        {
+          "rect": [910, 105, 1264, 916],
+          "color": [46, 213, 115],
+          "glow": [46, 213, 115],
+          "label": "SUCCESS"
+        }
+      ],
+      "arrows": []
+    }
+  ]
+}

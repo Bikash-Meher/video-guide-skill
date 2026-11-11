@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "video-guide-skill"
+version = "1.0.0"
+description = "Agent skill: produce narrated user-guide MP4s from screen recordings and a recipe JSON."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+keywords = [
+  "mcp", "agent-skill", "video-guide", "llm-tool",
+  "tutorial-automation", "screen-recording", "edge-tts", "hud"
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Multimedia :: Video",
+  "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+dependencies = [
+  "opencv-python>=4.9",
+  "pillow>=10.0",
+  "imageio-ffmpeg>=0.4",
+  "edge-tts>=6.1",
+  "numpy>=1.26",
+  "mcp>=1.0",
+]
+
+[project.scripts]
+# CLI entrypoint — renders a guide directly
+video-guide = "video_guide_skill.cli:main"
+# MCP server entrypoint — for Claude Code / Cursor
+video-guide-mcp = "video_guide_skill.mcp_entry:main"
+
+[project.urls]
+Homepage = "https://github.com/YOUR_USERNAME/video-guide-skill"
+Issues = "https://github.com/YOUR_USERNAME/video-guide-skill/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[tool.hatch.build.targets.wheel.shared-data]
+"schemas" = "share/video-guide-skill/schemas"
+"examples" = "share/video-guide-skill/examples"
+"antigravity" = "share/video-guide-skill/antigravity"
