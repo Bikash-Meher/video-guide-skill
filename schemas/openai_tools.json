@@ -1,48 +1,24 @@
 {
   "openai_tool_schema_version": "2024-01",
-  "description": "Video Guide Skill — OpenAI-compatible function-calling definitions. Paste the 'tools' array into your system/assistant config.",
+  "description": "Video Guide Skill — OpenAI-compatible function-calling definitions (Codex, Grok Code, Muse Code, Agents SDK). End user supplies ONLY video_path (and optional flow notes). Agent extracts 3 FPS frames, analyzes all frames, reads storyboards via vision, writes recipe, validates plan, and renders MP4.",
   "tools": [
     {
       "type": "function",
       "function": {
-        "name": "validate_recipe",
-        "description": "Validate a Video Guide recipe JSON without rendering. Performs TTS synthesis and timing checks. Returns warnings, overlap alerts, and the full plan text. ALWAYS call this before render_guide to catch audio-overlap issues early.",
+        "name": "create_guide",
+        "description": "Start the automated video-guide pipeline when the user provides a screen recording video path. Extracts 3 FPS frames via FFmpeg (e.g., ~630 frames for 210s), analyzes ALL extracted frames, renders labeled Storyboard Contact Sheets, and emits a starter engine.py recipe_draft.json. Inspect all storyboards and key frames BEFORE finalizing the recipe.",
         "parameters": {
           "type": "object",
           "properties": {
-            "recipe_json": {
-              "type": "string",
-              "description": "The complete recipe JSON as a string. Must follow the Video Guide recipe schema (see schemas/recipe.schema.json)."
-            }
+            "video_path": {"type": "string", "description": "Absolute path to screen recording (.mp4, .mov, .mkv)."},
+            "output_path": {"type": "string", "description": "Optional output .mp4 path."},
+            "user_flow_notes": {"type": "string", "description": "Optional editing instructions/flow notes from user."},
+            "fps": {"type": "number", "default": 3.0},
+            "voice": {"type": "string", "default": "en-IN-NeerjaNeural"},
+            "tone": {"type": "string", "enum": ["friendly", "professional", "energetic", "calm", "corporate"], "default": "friendly"},
+            "app_name": {"type": "string"}
           },
-          "required": ["recipe_json"],
-          "additionalProperties": false
-        }
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "render_guide",
-        "description": "Render a complete user-guide MP4 video from a recipe JSON. Produces narration (Edge TTS), animated HUD dock overlays, click/zoom annotations, background music, and an SRT caption file. Requires screen-recording frames on disk at paths referenced in the recipe.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "recipe_json": {
-              "type": "string",
-              "description": "The complete recipe JSON as a string."
-            },
-            "output_path": {
-              "type": "string",
-              "description": "Absolute file path for the output .mp4. E.g. C:/Users/me/guides/my_guide.mp4"
-            },
-            "export_srt": {
-              "type": "boolean",
-              "description": "If true (default), also write a .srt caption file next to the mp4.",
-              "default": true
-            }
-          },
-          "required": ["recipe_json", "output_path"],
+          "required": ["video_path"],
           "additionalProperties": false
         }
       }
@@ -51,35 +27,93 @@
       "type": "function",
       "function": {
         "name": "extract_frames",
-        "description": "Extract still frames from a screen recording video at a chosen FPS (default 3). Writes 0001_frame.png, 0002_frame.png … into output_dir. The returned frames_dir and frame filenames are used in recipe timeline_mapping steps.",
+        "description": "Extract N-FPS frames from a video using bundled FFmpeg (default 3 fps).",
         "parameters": {
           "type": "object",
           "properties": {
-            "video_path": {
-              "type": "string",
-              "description": "Absolute path to the screen recording file (.mp4, .mov, .mkv, .avi)."
-            },
-            "fps": {
-              "type": "number",
-              "description": "Frames per second to extract. 3 fps is recommended for UI walkthroughs (one frame every ~0.33 s).",
-              "default": 3.0
-            },
-            "output_dir": {
-              "type": "string",
-              "description": "Directory to write extracted frame PNGs into. Defaults to <video_dir>/<video_stem>_frames/ if omitted."
-            }
+            "video_path": {"type": "string"},
+            "fps": {"type": "number", "default": 3.0},
+            "output_dir": {"type": "string"},
+            "force": {"type": "boolean", "default": false}
           },
           "required": ["video_path"],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "analyze_frames",
+        "description": "Analyze ALL extracted 3-FPS frames (`0 .. N-1`), segment UI transitions / actions / idle holds, detect active UI bboxes, and generate Storyboard Contact Sheets.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "frames_dir": {"type": "string"},
+            "video_path": {"type": "string"},
+            "fps": {"type": "number", "default": 3.0}
+          },
+          "required": ["frames_dir"],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "inspect_frame_slice",
+        "description": "Generate a dense contact sheet of consecutive frames [start_frame .. end_frame] to zoom into fast UI interactions.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "frames_dir": {"type": "string"},
+            "start_frame": {"type": "integer"},
+            "end_frame": {"type": "integer"},
+            "fps": {"type": "number", "default": 3.0}
+          },
+          "required": ["frames_dir", "start_frame", "end_frame"],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "validate_recipe",
+        "description": "Verify no [AGENT:] placeholders remain and run `engine.py --plan_only` for TTS & overlap checks.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "recipe_path": {"type": "string", "description": "Path to saved recipe.json on disk."},
+            "recipe_json": {"type": "string", "description": "Complete recipe JSON string."}
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "render_guide",
+        "description": "Render complete narrated, HUD-annotated MP4 + SRT captions via engine.py.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "output_path": {"type": "string", "description": "Absolute path for final output .mp4."},
+            "recipe_path": {"type": "string", "description": "Path to completed recipe.json on disk."},
+            "recipe_json": {"type": "string", "description": "Complete recipe JSON string."},
+            "export_srt": {"type": "boolean", "default": true},
+            "voice": {"type": "string"},
+            "tone": {"type": "string"}
+          },
+          "required": ["output_path"],
           "additionalProperties": false
         }
       }
     }
   ],
   "executor": {
-    "description": "To execute a tool call, run tool_executor.py with the tool name and arguments.",
-    "examples": {
-      "shell": "echo '{\"tool\":\"extract_frames\",\"video_path\":\"C:/rec.mp4\",\"fps\":3}' | python tool_executor.py",
-      "python": "from tool_executor import extract_frames; result = extract_frames(video_path='C:/rec.mp4', fps=3)"
-    }
+    "shell": "echo '{\"tool\":\"create_guide\",\"video_path\":\"C:/rec.mp4\"}' | python tool_executor.py",
+    "python": "from tool_executor import create_guide; res = create_guide('C:/rec.mp4')"
   }
 }

@@ -1,266 +1,210 @@
 """
-mcp_server.py — MCP (Model Context Protocol) server for the Video Guide Skill.
+mcp_server.py — Cross-version (MCP SDK 1.x + 2.x) stdio server for the Video Guide Skill.
 
-Exposes three tools over stdio MCP transport:
-  • validate_recipe   — plan-only check
-  • render_guide      — full MP4 render
-  • extract_frames    — FFmpeg frame extraction
+Exposes all 7 zero-user-recipe tools over MCP stdio transport:
+  • create_guide         — Start here: video_path -> 3fps frames -> ALL frames analyzed -> storyboards + draft recipe
+  • extract_frames       — FFmpeg N-FPS frame extraction (--fps_extracted, default 3.0)
+  • analyze_frames       — Analyze ALL extracted frames -> segments + changed bboxes + storyboards
+  • inspect_frame_slice  — Render dense contact sheet for narrow frame range [start..end]
+  • scaffold_recipe      — Generate engine.py-compatible starter recipe.json
+  • validate_recipe      — Reject unresolved placeholders + run engine.py --plan_only
+  • render_guide         — Render narrated, HUD-annotated MP4 + SRT captions
 
-Compatible with:
-  • Claude Code / Claude Desktop   (stdio MCP)
-  • Cursor                         (.cursor/mcp.json)
-  • Any MCP-aware client
-
-Run directly:
-    uv run --with mcp python mcp_server.py
-
-Or via uvx after install:
-    uvx video-guide-skill
-
-Configure in Claude Desktop (~/.config/claude/claude_desktop_config.json):
-    {
-      "mcpServers": {
-        "video-guide": {
-          "command": "uv",
-          "args": ["run", "--with", "mcp,opencv-python,pillow,imageio-ffmpeg,edge-tts,numpy",
-                   "python", "/path/to/mcp_server.py"]
-        }
-      }
-    }
+Compatible with Claude Code, Claude Desktop, Cursor, Antigravity MCP, and any MCP client.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import sys
 from pathlib import Path
+from typing import Literal
 
-# MCP SDK — installed via: uv add mcp / pip install mcp
+HERE = Path(__file__).parent.resolve()
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
+
 try:
-    from mcp.server import Server
-    from mcp.server.stdio import stdio_server
-    from mcp.types import (
-        CallToolRequest,
-        CallToolResult,
-        ListToolsRequest,
-        ListToolsResult,
-        TextContent,
-        Tool,
-    )
-    import mcp.types as types
-except ImportError as e:
-    raise SystemExit(
-        "MCP SDK not found. Install with: pip install mcp  or  uv add mcp\n" + str(e)
-    )
+    from mcp.server.mcpserver import MCPServer
+except ImportError:
+    try:
+        from mcp.server.fastmcp import FastMCP as MCPServer
+    except ImportError as exc:
+        raise SystemExit(
+            "MCP SDK not found. Run `python bootstrap.py` or `pip install mcp`.\n" + str(exc)
+        )
 
-from tool_executor import validate_recipe, render_guide, extract_frames, scaffold_recipe, create_guide
+from tool_executor import (
+    analyze_frames as _analyze_frames,
+    create_guide as _create_guide,
+    extract_frames as _extract_frames,
+    inspect_frame_slice as _inspect_frame_slice,
+    render_guide as _render_guide,
+    scaffold_recipe as _scaffold_recipe,
+    validate_recipe as _validate_recipe,
+)
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 log = logging.getLogger("video-guide-mcp")
 
-server = Server("video-guide-skill")
+mcp = MCPServer("video-guide-skill")
 
-# ── Tool definitions ───────────────────────────────────────────────────────────
 
-TOOL_DEFS: list[Tool] = [
-    Tool(
-        name="create_guide",
-        description=(
-            "MASTER TOOL — Agent needs only a video_path and output_path. "
-            "Automatically extracts frames at 3 fps, detects UI scene transitions, "
-            "and returns a draft recipe with scene thumbnails for the agent to inspect. "
-            "The agent then fills narrations via vision and calls validate_recipe + render_guide. "
-            "Use this as the starting point for ANY new user-guide video."
-        ),
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "video_path": {
-                    "type": "string",
-                    "description": "Absolute path to the screen recording (.mp4, .mov, .mkv).",
-                },
-                "output_path": {
-                    "type": "string",
-                    "description": "Absolute path for the final output .mp4.",
-                },
-                "fps": {
-                    "type": "number",
-                    "description": "Frame extraction rate. Default 3 (recommended for UI).",
-                    "default": 3.0,
-                },
-                "voice": {
-                    "type": "string",
-                    "description": "Edge TTS voice. Default en-IN-NeerjaNeural.",
-                    "default": "en-IN-NeerjaNeural",
-                },
-                "tone": {
-                    "type": "string",
-                    "enum": ["professional", "energetic", "calm", "corporate", "friendly"],
-                    "default": "friendly",
-                },
-                "app_name": {
-                    "type": "string",
-                    "description": "Name of the app/website being recorded (used in title/narration context).",
-                },
-                "sensitivity": {
-                    "type": "number",
-                    "description": "Scene-cut sensitivity 0-1. Lower = more cuts. Default 0.18.",
-                    "default": 0.18,
-                },
-            },
-            "required": ["video_path", "output_path"],
-        },
+def _dump(res: dict) -> str:
+    return json.dumps(res, indent=2, ensure_ascii=False)
+
+
+@mcp.tool(
+    name="create_guide",
+    description=(
+        "MASTER START TOOL — End user ONLY provides `video_path` (plus optional `user_flow_notes`; NO recipe JSON "
+        "from user). Extracts 3 FPS frames via FFmpeg (e.g., ~630 frames for 210s), analyzes ALL extracted frames, "
+        "creates labeled Storyboard Contact Sheets + analysis_3fps.json + starter engine.py recipe_draft.json. "
+        "Agent MUST inspect all returned storyboard images & key frames BEFORE editing recipe, validating, and rendering."
     ),
-    Tool(
-        name="scaffold_recipe",
-        description=(
-            "Auto-detect scene transitions in extracted frames and produce a draft recipe JSON. "
-            "Returns scene_frames paths and base64 thumbnails so the agent can inspect "
-            "each scene visually and fill in narration text. "
-            "Call extract_frames first if frames_dir doesn't exist yet."
-        ),
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "frames_dir": {
-                    "type": "string",
-                    "description": "Directory containing *_frame.png files.",
-                },
-                "video_path": {
-                    "type": "string",
-                    "description": "Original video path (stored in recipe metadata).",
-                },
-                "fps": {"type": "number", "default": 3.0},
-                "sensitivity": {
-                    "type": "number",
-                    "description": "Scene-cut sensitivity. Lower = more steps detected.",
-                    "default": 0.18,
-                },
-                "voice": {"type": "string", "default": "en-IN-NeerjaNeural"},
-                "tone": {
-                    "type": "string",
-                    "enum": ["professional", "energetic", "calm", "corporate", "friendly"],
-                    "default": "friendly",
-                },
-                "app_name": {"type": "string", "default": "Application"},
-            },
-            "required": ["frames_dir"],
-        },
-    ),
-    Tool(
-        name="validate_recipe",
-        description=(
-            "Validate a Video Guide recipe JSON without rendering. "
-            "Runs TTS synthesis and timing checks. Returns warnings and plan text. "
-            "Always call this before render_guide to catch overlap issues."
-        ),
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "recipe_json": {
-                    "type": "string",
-                    "description": "Full recipe JSON string (or stringified dict).",
-                },
-            },
-            "required": ["recipe_json"],
-        },
-    ),
-    Tool(
-        name="render_guide",
-        description=(
-            "Render a complete user-guide MP4 (with narration, HUD overlays, "
-            "zoom annotations, background music) from a recipe JSON. "
-            "Also produces an .srt caption file. Requires screen recording frames "
-            "referenced in the recipe to exist on disk."
-        ),
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "recipe_json": {
-                    "type": "string",
-                    "description": "Full recipe JSON string.",
-                },
-                "output_path": {
-                    "type": "string",
-                    "description": "Absolute path for the output .mp4 file.",
-                },
-                "export_srt": {
-                    "type": "boolean",
-                    "description": "Whether to export a .srt subtitle file alongside the mp4.",
-                    "default": True,
-                },
-            },
-            "required": ["recipe_json", "output_path"],
-        },
-    ),
-    Tool(
-        name="extract_frames",
-        description=(
-            "Extract frames from a screen recording video at a given FPS "
-            "(default 3 fps). Frames are saved as 0001_frame.png, 0002_frame.png … "
-            "Use frame paths in your recipe's timeline_mapping steps."
-        ),
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "video_path": {
-                    "type": "string",
-                    "description": "Absolute path to the input screen recording (.mp4, .mov, .mkv).",
-                },
-                "fps": {
-                    "type": "number",
-                    "description": "Frames per second to extract. 3 is recommended for UI walkthroughs.",
-                    "default": 3.0,
-                },
-                "output_dir": {
-                    "type": "string",
-                    "description": "Directory to write frames into. Defaults to <video_dir>/<video_stem>_frames/.",
-                },
-            },
-            "required": ["video_path"],
-        },
-    ),
-]
-
-
-@server.list_tools()
-async def list_tools(req: ListToolsRequest) -> ListToolsResult:
-    return ListToolsResult(tools=TOOL_DEFS)
-
-
-@server.call_tool()
-async def call_tool(req: CallToolRequest) -> CallToolResult:
-    name = req.params.name
-    args = req.params.arguments or {}
-    log.info("Tool call: %s  args=%s", name, list(args.keys()))
-
-    try:
-        if name == "create_guide":
-            result = create_guide(**args)
-        elif name == "scaffold_recipe":
-            result = scaffold_recipe(**args)
-        elif name == "validate_recipe":
-            result = validate_recipe(**args)
-        elif name == "render_guide":
-            result = render_guide(**args)
-        elif name == "extract_frames":
-            result = extract_frames(**args)
-        else:
-            result = {"error": f"Unknown tool: {name}"}
-    except Exception as exc:
-        log.exception("Tool %s failed", name)
-        result = {"error": str(exc)}
-
-    return CallToolResult(
-        content=[TextContent(type="text", text=json.dumps(result, indent=2))]
+)
+def create_guide(
+    video_path: str,
+    output_path: str | None = None,
+    user_flow_notes: str = "",
+    fps: float = 3.0,
+    voice: str = "en-IN-NeerjaNeural",
+    tone: Literal["friendly", "professional", "energetic", "calm", "corporate"] = "friendly",
+    app_name: str | None = None,
+) -> str:
+    return _dump(
+        _create_guide(
+            video_path=video_path,
+            output_path=output_path,
+            user_flow_notes=user_flow_notes,
+            fps=fps,
+            voice=voice,
+            tone=tone,
+            app_name=app_name,
+        )
     )
 
 
-async def _main():
-    async with stdio_server() as (read_stream, write_stream):
-        await server.run(read_stream, write_stream, server.create_initialization_options())
+@mcp.tool(
+    name="extract_frames",
+    description="Extract N-FPS PNG frames from a video via bundled FFmpeg (`--fps_extracted`, default 3.0 = 3 images/sec).",
+)
+def extract_frames(
+    video_path: str,
+    fps: float = 3.0,
+    output_dir: str | None = None,
+    force: bool = False,
+) -> str:
+    return _dump(_extract_frames(video_path=video_path, fps=fps, output_dir=output_dir, force=force))
+
+
+@mcp.tool(
+    name="analyze_frames",
+    description=(
+        "Scan ALL extracted 3-FPS frames (`0 .. N-1`), classify PAGE_TRANSITION / UI_ACTION / IDLE_HOLD segments, "
+        "detect changed pixel regions [x1,y1,x2,y2], and render labeled Storyboard Contact Sheets."
+    ),
+)
+def analyze_frames(
+    frames_dir: str,
+    video_path: str | None = None,
+    fps: float = 3.0,
+    page_threshold: float = 0.055,
+    ui_threshold: float = 0.095,
+) -> str:
+    return _dump(
+        _analyze_frames(
+            frames_dir=frames_dir,
+            video_path=video_path,
+            fps=fps,
+            page_threshold=page_threshold,
+            ui_threshold=ui_threshold,
+        )
+    )
+
+
+@mcp.tool(
+    name="inspect_frame_slice",
+    description="Render a dense storyboard sheet containing every frame in [start_frame .. end_frame] (0-based 3-FPS indices).",
+)
+def inspect_frame_slice(
+    frames_dir: str,
+    start_frame: int,
+    end_frame: int,
+    fps: float = 3.0,
+    stride: int = 1,
+) -> str:
+    return _dump(_inspect_frame_slice(frames_dir=frames_dir, start_frame=start_frame, end_frame=end_frame, fps=fps, stride=stride))
+
+
+@mcp.tool(
+    name="scaffold_recipe",
+    description="Analyze ALL frames in `frames_dir` and generate an engine.py-compatible starter recipe.json + storyboards.",
+)
+def scaffold_recipe(
+    frames_dir: str,
+    video_path: str | None = None,
+    fps: float = 3.0,
+    voice: str = "en-IN-NeerjaNeural",
+    tone: Literal["friendly", "professional", "energetic", "calm", "corporate"] = "friendly",
+    app_name: str = "Application",
+    user_flow_notes: str = "",
+) -> str:
+    return _dump(
+        _scaffold_recipe(
+            frames_dir=frames_dir,
+            video_path=video_path,
+            fps=fps,
+            voice=voice,
+            tone=tone,
+            app_name=app_name,
+            user_flow_notes=user_flow_notes,
+        )
+    )
+
+
+@mcp.tool(
+    name="validate_recipe",
+    description=(
+        "Validate completed recipe (by `recipe_path` or `recipe_json`), ensure zero [AGENT:] placeholders remain, "
+        "synthesize Edge-TTS audio clips, check timings/overlaps, and return Pre-Render Editing Plan (`--plan_only`)."
+    ),
+)
+def validate_recipe(
+    recipe_path: str | None = None,
+    recipe_json: str | None = None,
+) -> str:
+    return _dump(_validate_recipe(recipe_json=recipe_json, recipe_path=recipe_path))
+
+
+@mcp.tool(
+    name="render_guide",
+    description="Render the final narrated, HUD-annotated MP4 user guide video and synchronized .srt captions via engine.py.",
+)
+def render_guide(
+    output_path: str,
+    recipe_path: str | None = None,
+    recipe_json: str | None = None,
+    export_srt: bool = True,
+    voice: str | None = None,
+    tone: Literal["friendly", "professional", "energetic", "calm", "corporate"] | None = None,
+) -> str:
+    return _dump(
+        _render_guide(
+            output_path=output_path,
+            recipe_json=recipe_json,
+            recipe_path=recipe_path,
+            export_srt=export_srt,
+            voice=voice,
+            tone=tone,
+        )
+    )
+
+
+def main() -> None:
+    mcp.run(transport="stdio")
 
 
 if __name__ == "__main__":
-    import asyncio
-    asyncio.run(_main())
+    main()

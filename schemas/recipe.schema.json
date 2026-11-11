@@ -1,134 +1,198 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/YOUR_USERNAME/video-guide-skill/schemas/recipe.schema.json",
-  "title": "Video Guide Recipe",
-  "description": "Recipe JSON for the Video Guide engine. Defines metadata, voice/tone, and step-by-step timeline mappings.",
+  "title": "Video Guide Engine Recipe",
+  "description": "Recipe JSON consumed directly by engine.py. Authored by the AI agent after extracting 3 FPS frames and analyzing all frames of the recording.",
   "type": "object",
-  "required": ["title", "default_voice", "tone", "output_resolution", "timeline_mapping"],
-  "additionalProperties": false,
+  "required": ["timeline_mapping", "steps"],
+  "additionalProperties": true,
   "properties": {
-    "title": {
-      "type": "string",
-      "description": "Human-readable title of this guide (used in filename suggestions)."
-    },
     "source_video": {
-      "type": "string",
-      "description": "Path to the original screen recording (optional — used by extract_frames)."
+      "type": ["string", "null"],
+      "description": "Path to the original screen recording (.mp4, .mov, .mkv)."
     },
     "frames_dir": {
-      "type": "string",
-      "description": "Directory containing extracted frame PNGs (0001_frame.png …)."
+      "type": ["string", "null"],
+      "description": "Path to directory containing 3 FPS extracted PNG frames (%04d_frame.png)."
+    },
+    "fps_extracted": {
+      "type": "number",
+      "default": 3.0,
+      "description": "Frame extraction rate (default 3.0 = 3 images per second)."
     },
     "input_source": {
       "type": "string",
       "enum": ["auto", "video", "frames"],
       "default": "auto",
-      "description": "'auto' auto-detects; 'frames' reads from frames_dir; 'video' reads directly from source_video."
+      "description": "'auto' selects video if present (sharper 30fps playback) or frames_dir; 'frames' reads 3fps PNGs directly."
     },
-    "source_frame_fps": {
-      "type": "number",
-      "default": 3.0,
-      "description": "FPS at which frames were extracted. Used for frame-index-to-time translation."
+    "auto_extract_frames": {
+      "type": "boolean",
+      "default": true
     },
-    "default_voice": {
+    "coord_mode": {
       "type": "string",
-      "description": "Edge TTS voice name. E.g. en-IN-NeerjaNeural, en-US-GuyNeural.",
-      "examples": [
-        "en-IN-NeerjaNeural", "en-IN-PrabhatNeural",
-        "en-US-JennyNeural", "en-US-GuyNeural",
-        "en-GB-SoniaNeural", "en-GB-RyanNeural"
-      ]
+      "enum": ["auto", "pixels", "normalized", "reference"],
+      "default": "auto"
+    },
+    "reference_resolution": {
+      "type": "array",
+      "items": {"type": "integer"},
+      "minItems": 2,
+      "maxItems": 2,
+      "examples": [[1920, 1080]]
+    },
+    "target_aspect": {
+      "type": "string",
+      "enum": ["native", "16:9", "9:16", "4:3", "1:1"],
+      "default": "native"
+    },
+    "branding_text": {
+      "type": "string",
+      "description": "Top-corner branding pill text, e.g. 'My App • User Guide'."
+    },
+    "branding_position": {
+      "type": "string",
+      "enum": ["top-right", "top-left", "bottom-right", "bottom-left", "hidden"],
+      "default": "top-right"
+    },
+    "preset": {
+      "type": "string",
+      "enum": ["tech_hud", "clean_light", "minimal", "high_contrast"],
+      "default": "tech_hud",
+      "description": "Visual HUD color theme preset (note: 'theme' if set must be an override dict, never a string)."
+    },
+    "theme": {
+      "type": "object",
+      "description": "Optional dict of color overrides merged over preset.",
+      "additionalProperties": true
     },
     "tone": {
       "type": "string",
       "enum": ["professional", "energetic", "calm", "corporate", "friendly"],
-      "description": "Tone preset controlling TTS rate/pitch and HUD visual style."
+      "default": "friendly",
+      "description": "Narration pacing & visual preset."
     },
-    "output_resolution": {
-      "type": "object",
-      "required": ["width", "height"],
-      "properties": {
-        "width": {"type": "integer", "examples": [1920]},
-        "height": {"type": "integer", "examples": [1080]}
-      }
+    "default_voice": {
+      "type": "string",
+      "default": "en-IN-NeerjaNeural",
+      "examples": [
+        "en-IN-NeerjaNeural",
+        "en-IN-PrabhatNeural",
+        "en-US-JennyNeural",
+        "en-US-GuyNeural",
+        "en-GB-SoniaNeural",
+        "en-GB-RyanNeural"
+      ]
+    },
+    "dock_mode": {
+      "type": "string",
+      "enum": ["auto", "below", "overlay"],
+      "default": "auto"
+    },
+    "dock_position": {
+      "type": "string",
+      "enum": ["auto", "below", "bottom", "top", "bottom-center", "top-center", "bottom-left", "bottom-right", "top-left", "top-right", "mid-left", "mid-right", "hidden"],
+      "default": "auto"
+    },
+    "dock_width_mode": {
+      "type": "string",
+      "enum": ["auto", "wide"],
+      "default": "auto"
     },
     "total_duration": {
-      "type": "number",
-      "description": "Total video duration in seconds. Must be >= sum of all step windows."
+      "type": ["number", "string"],
+      "default": "auto",
+      "description": "'auto' calculates final length cleanly from timeline, steps, and TTS durations."
     },
-    "audio_tracks_dir": {
+    "fps": {
+      "type": "integer",
+      "default": 30
+    },
+    "audio_timing_mode": {
       "type": "string",
-      "description": "Directory for cached TTS audio clips (auto-created if omitted)."
+      "enum": ["warn", "auto_shift"],
+      "default": "auto_shift"
+    },
+    "background_music": {
+      "type": "boolean",
+      "default": true
+    },
+    "export_subtitles": {
+      "type": "boolean",
+      "default": true
     },
     "timeline_mapping": {
       "type": "array",
       "minItems": 1,
-      "description": "Ordered list of narrated steps.",
+      "description": "Maps output video seconds cleanly to source frames (trimming dead pauses or speeding through typing).",
       "items": {
         "type": "object",
-        "required": ["step", "active_start", "active_end", "narration", "source_frame"],
-        "additionalProperties": true,
+        "required": ["start_sec", "end_sec"],
         "properties": {
-          "step": {"type": "integer", "minimum": 1},
-          "label": {"type": "string"},
-          "active_start": {"type": "number", "description": "Step start time in seconds."},
-          "active_end": {"type": "number", "description": "Step end time in seconds."},
-          "source_frame": {
-            "type": "string",
-            "description": "Path or filename of the frame PNG to show during this step."
-          },
-          "source_frame_start_3fps": {
-            "type": "integer",
-            "description": "Start frame index (at 3 fps) for video-source mode."
-          },
-          "source_frame_end_3fps": {
-            "type": "integer",
-            "description": "End frame index (at 3 fps) for video-source mode."
-          },
-          "narration": {"type": "string", "description": "Text to synthesize as voiceover."},
-          "highlight_boxes": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": ["x", "y", "w", "h"],
-              "properties": {
-                "x": {"type": "integer"},
-                "y": {"type": "integer"},
-                "w": {"type": "integer"},
-                "h": {"type": "integer"},
-                "color": {"type": "string", "default": "#00C4FF"},
-                "label": {"type": "string"},
-                "style": {"type": "string", "enum": ["solid", "dashed", "pulse"]}
-              }
-            }
-          },
-          "click_indicator": {
-            "type": "object",
-            "properties": {
-              "x": {"type": "integer"},
-              "y": {"type": "integer"},
-              "radius": {"type": "integer", "default": 20}
-            }
+          "start_sec": {"type": "number"},
+          "end_sec": {"type": "number"},
+          "source_frame_start_3fps": {"type": "integer", "minimum": 0},
+          "source_frame_end_3fps": {"type": "integer", "minimum": 0},
+          "source_frame_start": {"type": "integer", "minimum": 0},
+          "source_frame_end": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Ordered tutorial steps with voiceover narration and dynamic HUD overlays.",
+      "items": {
+        "type": "object",
+        "required": ["id", "start_time", "active_start", "active_end", "narration"],
+        "properties": {
+          "id": {"type": "string", "examples": ["intro", "step1", "complete"]},
+          "start_time": {"type": "number", "description": "Audio voiceover start time in seconds."},
+          "active_start": {"type": "number", "description": "HUD step display start in seconds."},
+          "active_end": {"type": "number", "description": "HUD step display end in seconds."},
+          "step_num": {"type": "string", "examples": ["INTRO", "STEP 1", "COMPLETE"]},
+          "step_title": {"type": "string"},
+          "narration": {"type": "string", "description": "Voiceover script synthesized via Edge TTS."},
+          "sub": {"type": "string", "description": "1-2 line HUD dock caption shown at bottom."},
+          "voice": {"type": "string"},
+          "spotlight": {
+            "type": ["boolean", "object"],
+            "description": "True or {rects: [[x1,y1,x2,y2]], dim_alpha: 0.35} to dim non-target areas."
           },
           "zoom": {
             "type": "object",
             "properties": {
-              "x": {"type": "integer"},
-              "y": {"type": "integer"},
-              "w": {"type": "integer"},
-              "h": {"type": "integer"},
-              "scale": {"type": "number", "default": 2.0}
+              "rect": {"type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4},
+              "transition_sec": {"type": "number", "default": 0.45},
+              "ease": {"type": "boolean", "default": true}
             }
           },
-          "hud_dock": {
-            "type": "object",
-            "properties": {
-              "position": {
-                "type": "string",
-                "enum": ["below", "above", "left", "right",
-                         "bottom-left", "bottom-right",
-                         "top-left", "top-right"],
-                "default": "below"
+          "boxes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["rect"],
+              "properties": {
+                "rect": {"type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4},
+                "color": {"type": "array", "items": {"type": "integer"}},
+                "glow": {"type": "array", "items": {"type": "integer"}},
+                "shape": {"type": "string", "enum": ["rect", "rounded_rect", "circle", "pill", "underline"]},
+                "pulse": {"type": "boolean"},
+                "label": {"type": "string"}
+              }
+            }
+          },
+          "arrows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["from", "to"],
+              "properties": {
+                "from": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+                "to": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+                "tag": {"type": "string"},
+                "dir": {"type": "string", "enum": ["auto", "left", "right", "up", "down"]}
               }
             }
           }

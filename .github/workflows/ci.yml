@@ -1,4 +1,4 @@
-name: CI — Setup + Smoke Test
+name: CI — Auto-Setup & Full 3-FPS Pipeline Test
 
 on:
   push:
@@ -6,9 +6,8 @@ on:
   pull_request:
 
 jobs:
-  # ── Test: auto setup works on clone (the main guarantee) ──────────────────
-  bootstrap:
-    name: Auto-setup on ${{ matrix.os }}
+  bootstrap-and-smoke:
+    name: Bootstrap & 3-FPS Pipeline (${{ matrix.os }}, py${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -24,86 +23,86 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # bootstrap.py installs uv, creates .venv, installs deps, verifies tools
-      - name: Run bootstrap.py (auto setup)
+      - name: Run bootstrap.py (auto environment setup)
         run: python bootstrap.py
 
-      # Quick sanity: tool_executor dispatches correctly
-      - name: Smoke test — validate_recipe tool (schema check only)
+      - name: Verify console scripts & MCP imports
         shell: bash
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
-            PYTHON=".venv/Scripts/python"
+            VENV_BIN=".venv/Scripts"
           else
-            PYTHON=".venv/bin/python"
+            VENV_BIN=".venv/bin"
           fi
-          $PYTHON -c "
-          import json, pathlib, sys
-          recipe = json.loads(pathlib.Path('examples/recipe_create_exam.json').read_text())
-          assert 'timeline_mapping' in recipe
-          assert len(recipe['timeline_mapping']) > 0
-          print(f'OK — {len(recipe[\"timeline_mapping\"])} steps, voice={recipe.get(\"default_voice\")}')
-          "
+          "$VENV_BIN/python" -c "import mcp_server; print('mcp_server OK')"
+          "$VENV_BIN/video-guide" --help >/dev/null
+          echo "video-guide CLI OK"
 
-      # Verify all 5 tools are callable
-      - name: Verify 5 tools registered
+      - name: Offline E2E test — 3 FPS FFmpeg extract -> analyze ALL frames -> storyboard -> recipe scaffold
         shell: bash
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
-            PYTHON=".venv/Scripts/python"
+            PY=".venv/Scripts/python"
           else
-            PYTHON=".venv/bin/python"
+            PY=".venv/bin/python"
           fi
-          $PYTHON -c "
-          from tool_executor import TOOLS
-          expected = {'extract_frames','scaffold_recipe','validate_recipe','render_guide','create_guide'}
-          assert expected == set(TOOLS.keys()), f'Missing tools: {expected - set(TOOLS.keys())}'
-          print('All 5 tools OK:', list(TOOLS.keys()))
-          "
+          "$PY" - <<'EOF'
+          import json, pathlib, subprocess, tempfile
+          import cv2, numpy as np, imageio_ffmpeg
+          from tool_executor import TOOLS, extract_frames, scaffold_recipe, validate_recipe
 
-  # ── Test: MCP server imports cleanly ──────────────────────────────────────
-  mcp-import:
-    name: MCP server import check
-    runs-on: ubuntu-latest
+          expected = {
+              "create_guide", "extract_frames", "analyze_frames",
+              "inspect_frame_slice", "scaffold_recipe", "validate_recipe", "render_guide"
+          }
+          assert expected == set(TOOLS.keys()), f"Missing tools: {expected - set(TOOLS.keys())}"
 
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Run bootstrap.py
-        run: python bootstrap.py
-      - name: Check mcp_server imports
-        run: .venv/bin/python -c "import mcp_server; print('mcp_server OK')"
+          with tempfile.TemporaryDirectory() as tmp:
+              tmp_p = pathlib.Path(tmp)
+              vid = tmp_p / "demo.mp4"
+              ff = imageio_ffmpeg.get_ffmpeg_exe()
+              # Generate a 6-second synthetic screen video with 3 distinct color panels (2s each)
+              cmd = [
+                  ff, "-y",
+                  "-f", "lavfi", "-i", "color=c=0x1e293b:s=1280x720:r=15:d=2",
+                  "-f", "lavfi", "-i", "color=c=0x0ea5e9:s=1280x720:r=15:d=2",
+                  "-f", "lavfi", "-i", "color=c=0x10b981:s=1280x720:r=15:d=2",
+                  "-filter_complex", "[0:v][1:v][2:v]concat=n=3:v=1:a=0",
+                  "-pix_fmt", "yuv420p", str(vid),
+              ]
+              subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-  # ── Test: setup.sh works on Linux ─────────────────────────────────────────
-  setup-sh:
-    name: setup.sh on Linux
-    runs-on: ubuntu-latest
+              ext = extract_frames(str(vid), fps=3.0)
+              assert ext["success"] and ext["frame_count"] >= 16, f"Extract failed: {ext}"
 
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Run setup.sh
-        run: bash setup.sh
+              scaf = scaffold_recipe(ext["frames_dir"], video_path=str(vid), fps=3.0, app_name="CI Demo")
+              assert scaf["success"], scaf
+              assert scaf["total_frames_analyzed"] == ext["frame_count"]
+              assert len(scaf["storyboard_paths"]) >= 1
+              assert pathlib.Path(scaf["storyboard_paths"][0]).exists()
 
-  # ── Test: auto_recipe scene detector imports ───────────────────────────────
-  scene-detector:
-    name: auto_recipe scene detector
-    runs-on: ubuntu-latest
+              recipe = json.loads(scaf["recipe_json"])
+              assert "timeline_mapping" in recipe and "steps" in recipe
+              assert len(recipe["steps"]) >= 2
 
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Run bootstrap.py
-        run: python bootstrap.py
-      - name: Import auto_recipe
+              # Should reject unresolved [AGENT:] placeholders
+              val_draft = validate_recipe(recipe_json=recipe)
+              assert not val_draft["valid"], "Draft with placeholders should fail validation"
+              print(f"E2E offline smoke test PASSED ({ext['frame_count']} frames analyzed, {len(scaf['storyboard_paths'])} storyboard sheet)")
+          EOF
+
+      - name: Validate example recipes structure
+        shell: bash
         run: |
-          .venv/bin/python -c "
-          from auto_recipe import detect_scenes, scaffold_recipe
-          print('auto_recipe OK — scene detector ready')
-          "
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            PY=".venv/Scripts/python"
+          else
+            PY=".venv/bin/python"
+          fi
+          "$PY" - <<'EOF'
+          import json, pathlib
+          for ex in pathlib.Path("examples").glob("recipe_*.json"):
+              data = json.loads(ex.read_text(encoding="utf-8"))
+              assert data.get("timeline_mapping") and data.get("steps"), f"Invalid example: {ex}"
+              print(f"Example OK: {ex.name} ({len(data['steps'])} steps)")
+          EOF

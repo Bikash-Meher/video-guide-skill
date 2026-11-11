@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "video-guide-skill"
 version = "1.0.0"
-description = "Agent skill: produce narrated user-guide MP4s from screen recordings and a recipe JSON."
+description = "Cross-agent skill & MCP server: drop any screen recording video path and let your AI agent analyze 3 FPS frames, plan edits, and render narrated HUD-annotated user guide MP4s."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
@@ -30,29 +30,27 @@ dependencies = [
 ]
 
 [project.scripts]
-# CLI entrypoint — renders a guide directly
 video-guide = "video_guide_skill.cli:main"
-# MCP server entrypoint — for Claude Code / Cursor
 video-guide-mcp = "video_guide_skill.mcp_entry:main"
+video-guide-tool = "tool_executor:main"
 
 [project.urls]
 Homepage = "https://github.com/YOUR_USERNAME/video-guide-skill"
 Issues = "https://github.com/YOUR_USERNAME/video-guide-skill/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["."]
+only-include = [
+  "video_guide_skill",
+  "engine.py",
+  "auto_recipe.py",
+  "tool_executor.py",
+  "mcp_server.py",
+  "bootstrap.py",
+]
 
 [tool.hatch.build.targets.wheel.shared-data]
+"SKILL.md" = "share/video-guide-skill/SKILL.md"
+"AGENTS.md" = "share/video-guide-skill/AGENTS.md"
 "schemas" = "share/video-guide-skill/schemas"
 "examples" = "share/video-guide-skill/examples"
 "antigravity" = "share/video-guide-skill/antigravity"
-
-# ── uv configuration ──────────────────────────────────────────────────────────
-[tool.uv]
-# Allow uv sync / uv run to work without extra flags
-dev-dependencies = []
-
-# ── Project scripts (registered after install) ────────────────────────────────
-# video-guide-mcp   → starts MCP stdio server
-# video-guide       → CLI render shortcut
-# video-guide-setup → re-runs bootstrap verification

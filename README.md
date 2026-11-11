@@ -1,303 +1,171 @@
 # 🎬 Video Guide Skill
 
-> **Turn any screen recording into a polished, narrated user-guide MP4** — in one tool call, from any agentic coding environment.
+> **Drop a screen recording video path — let ANY AI coding agent turn it into a narrated, HUD-annotated user guide MP4.**
 
 [![CI](https://github.com/YOUR_USERNAME/video-guide-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/video-guide-skill/actions)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
+[![Agent Skills](https://img.shields.io/badge/Agent_Skill-SKILL.md-purple)](SKILL.md)
 [![MCP](https://img.shields.io/badge/MCP-stdio-green)](https://modelcontextprotocol.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+Works seamlessly across **Antigravity**, **Claude Code**, **OpenAI Codex**, **Cursor**, **Muse Code**, **Grok Code**, and any tool supporting `SKILL.md`, `AGENTS.md`, CLI JSON tools, or **MCP**.
+
 ---
 
-## ✨ What it does
+## ✨ What it does (Zero Recipe JSON Needed from User!)
 
-You give the agent **only a screen recording path**. The skill does everything else:
+You supply **only your screen recording path** (and optionally any guide/flow notes).  
+The skill guides your AI agent to do **100% of the heavy lifting**:
 
 ```
-[You] ──► video path only
+[You] ──► "C:/recordings/erp.mp4 — edit this into a user guide"
   │
-  ├─ 1. Extract frames at 3 fps   (FFmpeg, bundled — no install)
-  ├─ 2. Detect UI scene changes   (histogram diff, automatic)
-  ├─ 3. Scaffold draft recipe     (steps, timing, frame refs)
-  ├─ 4. Agent inspects scenes     (vision → writes narrations)
-  ├─ 5. Validate recipe           (TTS synthesis + timing check)
-  └─ 6. Render MP4 + SRT          (h264, aac, captions)
+  ├─ 1. FFmpeg 3-FPS Extraction    (e.g., ~630 PNGs for a 210s video; FFmpeg bundled)
+  ├─ 2. Full-Sequence Frame Scan   (analyzes EVERY extracted frame 0..N-1 for UI & page cuts)
+  ├─ 3. Labeled Storyboards        (generates high-res storyboard sheets + changed pixel bboxes)
+  ├─ 4. Agent Visual Understanding (reads storyboards + key frames before editing)
+  ├─ 5. Dynamic Recipe Synthesis   (trims idle pauses, authors narration, boxes, arrows, zoom)
+  ├─ 6. Voice / Tone & Plan Gate   (Edge-TTS check + `--plan_only` preview before render)
+  └─ 7. Final Render               (1080p+ H.264 MP4, sidechain-ducked music, `.srt` captions)
 ```
 
-| Feature | Detail |
+| Capability | Detail |
 |---|---|
-| 🎙️ Narration | Microsoft Edge TTS — 6 voices, 5 tone presets |
-| 🖥️ HUD overlays | Animated step counter + progress dock (8 placement zones) |
-| 🔍 Zoom & click | Per-step zoom crops and animated click indicators |
-| 🎵 Music | Auto-ducking background music |
-| 📋 Captions | `.srt` subtitle file alongside every render |
-| ⚡ Frame extraction | Built-in FFmpeg at 3 fps (configurable) |
-| 🤖 Auto recipe | Scene detection → draft → agent fills narrations via vision |
-
-Works for **any app, website, portal, SaaS, or web application**.
+| 🎙️ **Voiceover** | Microsoft Edge TTS — 6 voices + custom IDs, 5 tone presets, auto-shift or overlap check |
+| 🖥️ **8-Zone Adaptive HUD Dock** | Auto-wraps captions, extends bottom stage on cropped wide videos, avoids UI buttons cleanly |
+| 🔍 **Smooth Zoom & Spotlight** | Region zoom transitions + background dim spotlight masks |
+| 🎯 **Boxes & Pulsing Arrows** | `rect`, `rounded_rect`, `circle`, `pill`, `underline` highlights + auto-angled vector arrows |
+| 🎨 **4 Themes** | `tech_hud`, `clean_light`, `minimal`, `high_contrast` |
+| 📋 **Captions & Audio** | `.srt` subtitle export, auto-ducked synth/custom music, optional source audio mix |
 
 ---
 
-## 🚀 Setup — One Command, Any OS, Any Agent
+## 🚀 Auto Environment Setup on Clone
 
-> **Clone → run one command → ready. No manual pip, no PATH tweaks, no prior uv required.**
+Clone the repository and run **one command** — Python `>= 3.11` is the only prerequisite:
 
 ```bash
-# 1. Clone
 git clone https://github.com/YOUR_USERNAME/video-guide-skill.git
 cd video-guide-skill
 
-# 2. Auto-setup (works on Windows, Linux, macOS — Python 3.11+ only requirement)
+# Universal (Windows / macOS / Linux)
 python bootstrap.py
+
+# Or install globally into Antigravity / Claude Code / Codex / Cursor skill folders too:
+python bootstrap.py --install-skill --print-mcp
 ```
 
-`bootstrap.py` automatically:
-- ✅ Checks Python ≥ 3.11
-- ✅ Installs `uv` if missing (via pip → then official installer fallback)
-- ✅ Creates `.venv` and installs all dependencies
-- ✅ Verifies all 5 tools import correctly
-- ✅ Prints a ready-to-use cheatsheet
+**OS shortcuts:**
+- Windows PowerShell: `.\setup.ps1` (or `.\setup.ps1 -InstallSkill -PrintMcp`)
+- Linux / macOS / WSL: `bash setup.sh` (or `bash setup.sh --install-skill --print-mcp`)
 
-**OS-specific shortcuts (same result as bootstrap.py):**
-
-| OS | Command |
-|---|---|
-| Windows (PowerShell) | `.\setup.ps1` |
-| Linux / macOS / WSL | `bash setup.sh` |
-| Any OS (universal) | `python bootstrap.py` |
-
-**pip fallback (no uv needed):**
-```bash
-pip install -r requirements.txt
-pip install -e .
-```
-
-**Requirements:** Python ≥ 3.11, internet (for TTS + first-time dep download). FFmpeg is bundled.
+> Also works automatically without running setup manually: calling `python tool_executor.py` auto-bootstraps `.venv` on first invocation.
 
 ---
 
-## 🤖 Usage by Agent Tool
+## 🤖 Using Across Every Agentic Tool
 
-> **In every tool below — the agent only needs the video path. No recipe writing, no manual steps.**
+In every tool below, **just give the recording path** (and optional flow instructions):
 
-### Antigravity (Google Deepmind)
+### 1. Antigravity / OpenAI Codex / Claude Code Skills (`SKILL.md` & `AGENTS.md`)
 
-**Method 1 — Copy skill to Antigravity config:**
+Run:
 ```bash
-# Windows PowerShell
-New-Item -ItemType Directory -Force "C:\Users\<you>\.gemini\config\skills\video-guide"
-Copy-Item "antigravity\SKILL.md" "C:\Users\<you>\.gemini\config\skills\video-guide\SKILL.md"
+python bootstrap.py --install-skill
 ```
+This installs the self-contained skill (`SKILL.md`, `engine.py`, `auto_recipe.py`, `tool_executor.py`, schemas, examples) into your agent's `skills/` directory (`~/.gemini/config/skills/`, `~/.claude/skills/`, `~/.codex/skills/`, `~/.cursor/skills/`). Or simply open this cloned repo directly (`AGENTS.md` + `SKILL.md` are discovered automatically!).
 
-**Invoke in chat — just paste the video path:**
+**Prompt example:**
+```text
+C:/recordings/Recording_2026-11-10.mp4 — extract 3 fps frames, analyze all frames, and edit this into a user guide video.
 ```
-Create a user guide from C:/recordings/my_app.mp4
-```
-Antigravity calls `create_guide`, inspects the returned thumbnails via its vision model,
-writes narrations, validates, and renders — no manual input needed.
 
 ---
 
-### Claude Code / Claude Desktop (Anthropic MCP)
+### 2. Claude Code / Claude Desktop / Cursor / Antigravity MCP
 
-Add to `~/.config/claude/claude_desktop_config.json`:
+Run `python bootstrap.py --print-mcp` to get the exact JSON with your system's `.venv` paths, or configure:
 
 ```json
 {
   "mcpServers": {
     "video-guide": {
-      "command": "uv",
-      "args": [
-        "run", "--with",
-        "mcp,opencv-python,pillow,imageio-ffmpeg,edge-tts,numpy",
-        "python",
-        "/absolute/path/to/video-guide-skill/mcp_server.py"
-      ]
+      "command": "/path/to/video-guide-skill/.venv/bin/python",
+      "args": ["/path/to/video-guide-skill/mcp_server.py"]
     }
   }
 }
 ```
+*(Windows: use `.venv/Scripts/python.exe` — see `python bootstrap.py --print-mcp`.)*
 
-Then in Claude Code:
-```
-Use the video-guide:extract_frames tool on /home/me/recordings/portal.mp4,
-then validate and render a guide for the login flow.
-```
+Cursor project config goes in `.cursor/mcp.json`.
 
 ---
 
-### Cursor
+### 3. Grok Code / Muse Code / OpenAI Function-Calling SDK
 
-Add to `.cursor/mcp.json` in your project root:
+Load `tools[]` from [`schemas/openai_tools.json`](schemas/openai_tools.json) and execute via `tool_executor.py`:
 
-```json
-{
-  "mcpServers": {
-    "video-guide": {
-      "command": "uv",
-      "args": [
-        "run", "--with",
-        "mcp,opencv-python,pillow,imageio-ffmpeg,edge-tts,numpy",
-        "python",
-        "/absolute/path/to/video-guide-skill/mcp_server.py"
-      ],
-      "transport": "stdio"
-    }
-  }
-}
-```
-
----
-
-### OpenAI Codex / Grok Code / Muse Code
-
-These tools use OpenAI-compatible function-calling. Add the tool definitions from `schemas/openai_tools.json` to your system configuration or agent tools array.
-
-**Direct shell invocation (simplest integration):**
 ```bash
-# 1. Extract frames
-echo '{"tool":"extract_frames","video_path":"C:/rec.mp4","fps":3}' | python tool_executor.py
+# Step 1: Extract 3 FPS frames + analyze ALL frames + create storyboards & starter draft
+echo '{"tool":"create_guide","video_path":"C:/rec.mp4","user_flow_notes":"Create exam walkthrough"}' | .venv/bin/python tool_executor.py
 
-# 2. Validate recipe
-echo '{"tool":"validate_recipe","recipe_json":"{...}"}' | python tool_executor.py
+# Step 2 (Agent inspects storyboards + key frames, writes recipe.json, then validates):
+.venv/bin/python tool_executor.py --args '{"tool":"validate_recipe","recipe_path":"C:/rec_frames/_work/recipe.json"}'
 
-# 3. Render
-echo '{"tool":"render_guide","recipe_json":"{...}","output_path":"C:/out/guide.mp4"}' | python tool_executor.py
-```
-
-**OpenAI Agents SDK:**
-```python
-from openai import OpenAI
-import json, pathlib
-
-tools = json.loads(pathlib.Path("schemas/openai_tools.json").read_text())["tools"]
-
-client = OpenAI()
-# Pass `tools=tools` in your chat.completions.create() call.
-# When the model calls extract_frames / validate_recipe / render_guide,
-# dispatch to tool_executor.py via subprocess.
+# Step 3 (Render final MP4 + SRT):
+.venv/bin/python tool_executor.py --args '{"tool":"render_guide","recipe_path":"C:/rec_frames/_work/recipe.json","output_path":"C:/out/Guide.mp4"}'
 ```
 
 ---
 
-## 📄 Recipe JSON Format
+## 🛠️ Seven Agent Tools
 
-A **recipe** tells the engine what to show, say, and annotate at each step.
-
-**Minimal example:**
-```json
-{
-  "title": "My App Login Guide",
-  "frames_dir": "C:/recordings/my_app_frames",
-  "default_voice": "en-IN-NeerjaNeural",
-  "tone": "friendly",
-  "output_resolution": {"width": 1920, "height": 1080},
-  "total_duration": 30.0,
-  "timeline_mapping": [
-    {
-      "step": 1,
-      "label": "Open Login Page",
-      "active_start": 0.0,
-      "active_end": 8.0,
-      "source_frame": "C:/recordings/my_app_frames/0001_frame.png",
-      "narration": "Open your browser and navigate to the login page.",
-      "highlight_boxes": [
-        {"x": 400, "y": 300, "w": 500, "h": 60, "color": "#00C4FF", "label": "URL Bar"}
-      ]
-    },
-    {
-      "step": 2,
-      "label": "Enter Credentials",
-      "active_start": 8.0,
-      "active_end": 18.0,
-      "source_frame": "C:/recordings/my_app_frames/0025_frame.png",
-      "narration": "Enter your username and password, then click Sign In.",
-      "click_indicator": {"x": 760, "y": 480}
-    }
-  ]
-}
-```
-
-**Available voices:**
-
-| Voice ID | Description |
+| Tool | Purpose |
 |---|---|
-| `en-IN-NeerjaNeural` | Indian English Female — Warm, Articulate |
-| `en-IN-PrabhatNeural` | Indian English Male — Clear, Authoritative |
-| `en-US-JennyNeural` | US English Female — Friendly Corporate |
-| `en-US-GuyNeural` | US English Male — Confident Tutorial |
-| `en-GB-SoniaNeural` | UK English Female — Polished, Natural |
-| `en-GB-RyanNeural` | UK English Male — Crisp, Formal |
-
-**Tone presets:** `professional` · `energetic` · `calm` · `corporate` · `friendly`
-
-**HUD dock positions:** `below` · `above` · `left` · `right` · `bottom-left` · `bottom-right` · `top-left` · `top-right`
-
-Full schema: [`schemas/recipe.schema.json`](schemas/recipe.schema.json)
+| ⭐ **`create_guide`** | Start here with just `video_path`: extracts 3-FPS frames via FFmpeg, analyzes all `N` frames (`0..N-1`), renders labeled `storyboard_*.png` contact sheets + `analysis_3fps.json` + starter `recipe_draft.json` |
+| `extract_frames` | Bundled FFmpeg frame extraction (`--fps_extracted 3` = 3 images/sec) |
+| `analyze_frames` | Exhaustive spatiotemporal frame scan + `8×6` UI change bbox detector + contact sheets |
+| `inspect_frame_slice` | Zooms into every consecutive frame in `[start_frame..end_frame]` for fast UI clicks |
+| `scaffold_recipe` | Emits an `engine.py`-compatible starter `recipe.json` from analyzed frames |
+| `validate_recipe` | Blocks leftover `[AGENT:]` placeholders + runs `engine.py --plan_only` |
+| `render_guide` | Renders final 1080p+ H.264 `.mp4` + `.srt` captions via `engine.py` |
 
 ---
 
-## 🛠️ Five Tools — Start with `create_guide`
+## 🎙️ Voice & Tone Presets
 
-| Tool | Input required | Does |
-|---|---|---|
-| ⭐ **`create_guide`** | `video_path`, `output_path` | Full auto pipeline — just drop a video |
-| `scaffold_recipe` | `frames_dir` | Scene detect → draft recipe + thumbnails for agent |
-| `validate_recipe` | `recipe_json` | TTS + timing check, returns warnings |
-| `render_guide` | `recipe_json`, `output_path` | Full MP4 render |
-| `extract_frames` | `video_path` | FFmpeg extraction only |
+| Voice ID | Description | Tone Preset | Speed / Style |
+|---|---|---|---|
+| `en-IN-NeerjaNeural` | Indian English Female | `friendly` | `+6%`, warm `tech_hud` |
+| `en-IN-PrabhatNeural` | Indian English Male | `professional` | `+8%`, balanced `tech_hud` |
+| `en-US-JennyNeural` | US English Female | `calm` | `+0%`, light `clean_light` |
+| `en-US-GuyNeural` | US English Male | `energetic` | `+14%`, upbeat `tech_hud` |
+| `en-GB-SoniaNeural` | UK English Female | `corporate` | `+5%`, sleek `minimal` |
+| `en-GB-RyanNeural` | UK English Male | *(any custom Edge-TTS voice also works)* | |
 
 ---
 
 ## 📁 Repository Structure
 
-```
+```text
 video-guide-skill/
-├── bootstrap.py           # 🔧 Universal auto-setup (run this after clone)
-├── setup.ps1              # 🔧 Windows PowerShell setup shortcut
-├── setup.sh               # 🔧 Linux / macOS setup shortcut
-├── engine.py              # Core rendering engine (CV2 + Pillow + Edge TTS)
-├── auto_recipe.py         # Scene detection + recipe scaffolder
-├── tool_executor.py       # JSON-in / JSON-out tool dispatcher (5 tools)
-├── mcp_server.py          # MCP stdio server (Claude Code, Cursor)
-├── skill_manifest.json    # Unified skill manifest
-├── pyproject.toml         # pip/uv installable package
-├── requirements.txt       # pip fallback (no uv needed)
-├── .python-version        # Pins Python 3.11 for uv
+├── SKILL.md                   # Agent Skills Open Standard prompt & workflow
+├── AGENTS.md                  # Cross-agent instructions (Codex, Cursor, Muse, Grok)
+├── bootstrap.py               # Universal 1-command auto-setup + --install-skill
+├── setup.ps1 / setup.sh       # OS setup wrappers
+├── engine.py                  # Core video compositor, FFmpeg 3-FPS extractor & Edge-TTS mixer
+├── auto_recipe.py             # Exhaustive 3-FPS frame analyzer, storyboards & recipe scaffolder
+├── tool_executor.py           # JSON-in/JSON-out dispatcher (7 tools)
+├── mcp_server.py              # MCP stdio server
+├── video_guide_skill/         # Python package entrypoints (`video-guide`, `video-guide-mcp`)
 ├── schemas/
-│   ├── recipe.schema.json # JSON Schema for recipe validation
-│   └── openai_tools.json  # OpenAI function-calling definitions
+│   ├── recipe.schema.json     # Full engine.py recipe JSON schema
+│   └── openai_tools.json      # OpenAI function-calling schema
 ├── examples/
-│   ├── recipe_create_exam.json    # 12-step ERP exam creation guide
-│   └── recipe_student_sale.json   # 15-step student sale workflow
-├── antigravity/
-│   └── SKILL.md           # Antigravity skill definition
-└── .github/workflows/
-    └── ci.yml             # CI: bootstrap on Windows + Linux + macOS
-```
-
----
-
-## 🔄 Agent Workflow — Zero Manual Input
-
-```
-User: "Create a user guide from C:/recordings/portal.mp4"
-
-Agent calls: create_guide(video_path="portal.mp4", output_path="guide.mp4")
-
-  Internally:
-    ► extract_frames  → 300 frames at 3 fps
-    ► detect scenes   → 8 UI transition points found
-    ► scaffold recipe → draft JSON + 8 thumbnails returned
-
-Agent: inspects thumbnails via vision model
-       writes narration for each step
-       fills highlight_boxes for key UI elements
-
-Agent calls: validate_recipe(recipe_json="<filled>")   → 0 warnings
-Agent calls: render_guide(recipe_json="<filled>", output_path="guide.mp4")
-
-Done → guide.mp4 (narrated, HUD, captions) + guide.srt
+│   ├── recipe_create_exam.json    # Real 12-step ERP exam creation guide
+│   └── recipe_student_sale.json   # Real 15-step sales workflow guide
+└── .github/workflows/ci.yml   # Windows + Linux + macOS E2E 3-FPS CI
 ```
 
 ---
@@ -305,10 +173,3 @@ Done → guide.mp4 (narrated, HUD, captions) + guide.srt
 ## 📜 License
 
 MIT — see [LICENSE](LICENSE).
-
----
-
-## 🤝 Contributing
-
-PRs welcome! Please open an issue first for large changes.
-Topics: `mcp` · `agent-skill` · `video-guide` · `llm-tool` · `tutorial-automation`

@@ -1,22 +1,25 @@
 """
-bootstrap.py — Universal one-command environment setup.
+bootstrap.py — Universal one-command environment setup & cross-agent installer.
 
-Run with the system Python (no prior install needed):
+Run with system Python (no prior packages needed):
     python bootstrap.py
+    python bootstrap.py --install-skill            # Also install skill into detected agent dirs
+    python bootstrap.py --print-mcp                # Print ready-to-paste MCP configs with exact paths
 
 What it does:
   1. Checks Python >= 3.11
-  2. Installs uv if missing (via pip or curl/powershell)
-  3. Creates .venv via uv and installs all dependencies
-  4. Verifies all 5 skill tools import correctly
-  5. Prints a ready-to-use cheatsheet
+  2. Installs `uv` if missing (pip -> official installer fallback)
+  3. Creates `.venv` via `uv` and installs this package + all dependencies
+  4. Verifies bundled FFmpeg binary + all 7 tools + CLI entrypoints
+  5. Prints ready-to-use commands and optional MCP/Skill installation snippets
 
 Works on: Windows (PowerShell / CMD), Linux, macOS.
-Agents: Antigravity, Claude Code, Cursor, Codex, Grok, Muse — any that can run python.
+Compatible with: Antigravity, Claude Code, OpenAI Codex, Cursor, Muse Code, Grok Code.
 """
 
 from __future__ import annotations
 
+import argparse
 import os
 import platform
 import shutil
@@ -24,29 +27,25 @@ import subprocess
 import sys
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+if hasattr(sys.stderr, "reconfigure"):
+    try:
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 HERE = Path(__file__).parent.resolve()
 VENV = HERE / ".venv"
 IS_WIN = platform.system() == "Windows"
 PYTHON = sys.executable
 
-DEPS = [
-    "opencv-python>=4.9",
-    "pillow>=10.0",
-    "imageio-ffmpeg>=0.4",
-    "edge-tts>=6.1",
-    "numpy>=1.26",
-    "mcp>=1.0",
-]
-
-BANNER = """
-╔══════════════════════════════════════════════════════════════╗
-║          🎬  Video Guide Skill — Bootstrap Setup             ║
-╚══════════════════════════════════════════════════════════════╝
-"""
-
-OK   = "  ✅"
-FAIL = "  ❌"
-INFO = "  ℹ️ "
+OK = "  [OK]"
+FAIL = "  [FAIL]"
+INFO = "  [INFO]"
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
@@ -62,164 +61,221 @@ def run_silent(cmd: list[str]) -> bool:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Step 1: Python version check
+# Step 1: Python >= 3.11
 # ──────────────────────────────────────────────────────────────────────────────
 
 def check_python() -> None:
     v = sys.version_info
     if v < (3, 11):
         print(f"{FAIL} Python {v.major}.{v.minor} found — need 3.11+")
-        print(f"       Download from https://python.org/downloads/")
+        print("       Download from https://python.org/downloads/")
         sys.exit(1)
-    print(f"{OK}  Python {v.major}.{v.minor}.{v.micro}")
+    print(f"{OK} Python {v.major}.{v.minor}.{v.micro}")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Step 2: Install uv
+# Step 2: Ensure uv
 # ──────────────────────────────────────────────────────────────────────────────
 
 def ensure_uv() -> str:
-    """Return path to uv binary, installing it if needed."""
+    """Return path to `uv`, installing it if missing."""
     uv = shutil.which("uv")
     if uv:
-        print(f"{OK}  uv found at {uv}")
+        print(f"{OK} uv found at {uv}")
         return uv
 
     print(f"{INFO} uv not found — installing...")
 
-    # Try pip first (fastest, works everywhere)
+    # Method A: pip
     if run_silent([PYTHON, "-m", "pip", "install", "--quiet", "uv"]):
         uv = shutil.which("uv")
         if not uv:
-            # pip installed it but not on PATH — find it
-            scripts = Path(PYTHON).parent
-            uv_bin = scripts / ("uv.exe" if IS_WIN else "uv")
-            if uv_bin.exists():
-                uv = str(uv_bin)
+            scripts = Path(PYTHON).parent / ("Scripts" if IS_WIN else "bin")
+            for cand in [Path(PYTHON).parent / ("uv.exe" if IS_WIN else "uv"), scripts / ("uv.exe" if IS_WIN else "uv")]:
+                if cand.exists():
+                    uv = str(cand)
+                    break
         if uv:
-            print(f"{OK}  uv installed via pip")
+            print(f"{OK} uv installed via pip ({uv})")
             return uv
 
-    # Fallback: official installer
+    # Method B: official Astral installer
     if IS_WIN:
-        ps_cmd = (
-            'powershell -ExecutionPolicy Bypass -Command '
-            '"irm https://astral.sh/uv/install.ps1 | iex"'
-        )
-        ok = run_silent(ps_cmd.split())
+        ok = run_silent([
+            "powershell", "-ExecutionPolicy", "Bypass", "-Command",
+            "irm https://astral.sh/uv/install.ps1 | iex",
+        ])
     else:
-        ok = run_silent(
-            ["sh", "-c", "curl -LsSf https://astral.sh/uv/install.sh | sh"]
-        )
+        ok = run_silent(["sh", "-c", "curl -LsSf https://astral.sh/uv/install.sh | sh"])
 
     if ok:
-        # Add ~/.cargo/bin or ~/.local/bin to PATH for this process
         for extra in [
             Path.home() / ".cargo" / "bin",
             Path.home() / ".local" / "bin",
+            Path.home() / "AppData" / "Local" / "Programs" / "uv",
         ]:
             if extra.exists():
                 os.environ["PATH"] = str(extra) + os.pathsep + os.environ["PATH"]
 
     uv = shutil.which("uv")
     if uv:
-        print(f"{OK}  uv installed via official installer")
+        print(f"{OK} uv installed ({uv})")
         return uv
 
-    print(f"{FAIL} Could not install uv automatically.")
-    print("       Please install manually: https://docs.astral.sh/uv/")
+    print(f"{FAIL} Could not install uv automatically: https://docs.astral.sh/uv/")
     sys.exit(1)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Step 3: Create venv + install deps
+# Step 3: Create .venv & install package editable + dependencies
 # ──────────────────────────────────────────────────────────────────────────────
 
 def setup_venv(uv: str) -> None:
     if VENV.exists():
-        print(f"{OK}  .venv already exists — syncing deps")
+        print(f"{OK} .venv already exists — syncing editable package & deps")
     else:
         print(f"{INFO} Creating .venv ...")
         run([uv, "venv", str(VENV), "--python", PYTHON])
-        print(f"{OK}  .venv created")
+        print(f"{OK} .venv created")
 
-    print(f"{INFO} Installing dependencies (may take a minute on first run)...")
-    run([uv, "pip", "install", "--quiet", "-e", str(HERE),
-         "--python", str(VENV)])
-    print(f"{OK}  Dependencies installed")
+    print(f"{INFO} Installing package & dependencies (first run downloads ~90MB)...")
+    run([uv, "pip", "install", "--quiet", "-e", str(HERE), "--python", str(VENV)])
+    print(f"{OK} Dependencies installed")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Step 4: Verify all 5 tools
+# Step 4: Verify all 7 tools, FFmpeg, and console scripts
 # ──────────────────────────────────────────────────────────────────────────────
 
-def verify_tools(uv: str) -> None:
-    venv_python = (
-        VENV / "Scripts" / "python.exe" if IS_WIN else VENV / "bin" / "python"
-    )
+def verify_all() -> None:
+    venv_py = VENV / ("Scripts/python.exe" if IS_WIN else "bin/python")
     code = (
         "import sys; sys.path.insert(0, '.'); "
-        "from tool_executor import TOOLS, extract_frames, scaffold_recipe, "
-        "validate_recipe, render_guide, create_guide; "
-        "from auto_recipe import scaffold_recipe as _sr; "
+        "import imageio_ffmpeg, cv2, edge_tts, numpy, mcp; "
+        "from PIL import Image; "
+        "ff = imageio_ffmpeg.get_ffmpeg_exe(); "
+        "from tool_executor import TOOLS; "
+        "from auto_recipe import analyze_video_frames, scaffold_recipe; "
+        "from video_guide_skill.cli import main as _cli; "
+        "from video_guide_skill.mcp_entry import main as _mcp; "
+        "print('FFMPEG:', ff); "
         "print('TOOLS:', list(TOOLS.keys()))"
     )
-    result = subprocess.run(
-        [str(venv_python), "-c", code],
-        capture_output=True, text=True, cwd=str(HERE)
+    res = subprocess.run(
+        [str(venv_py), "-c", code],
+        capture_output=True, text=True, cwd=str(HERE), encoding="utf-8", errors="replace",
     )
-    if result.returncode == 0:
-        tools_line = [l for l in result.stdout.splitlines() if "TOOLS:" in l]
-        print(f"{OK}  All tools verified — {tools_line[0] if tools_line else 'OK'}")
-    else:
-        print(f"{FAIL} Tool verification failed:")
-        print(result.stderr[-1000:])
+    if res.returncode != 0:
+        print(f"{FAIL} Verification failed:\n{res.stderr[-1200:]}")
         sys.exit(1)
 
+    ff_line = next((l for l in res.stdout.splitlines() if l.startswith("FFMPEG:")), "FFMPEG: OK")
+    tools_line = next((l for l in res.stdout.splitlines() if l.startswith("TOOLS:")), "TOOLS: OK")
+    print(f"{OK} Bundled FFmpeg ready ({ff_line.split(':', 1)[1].strip()})")
+    print(f"{OK} All 7 tools verified ({tools_line.split(':', 1)[1].strip()})")
+
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Step 5: Print cheatsheet
+# Optional: Copy / Register Skill folder for Antigravity, Claude Code, Codex, Cursor
 # ──────────────────────────────────────────────────────────────────────────────
+
+def install_skill_to_agents(target: str = "all") -> None:
+    """Install self-contained skill files into agent skill discovery folders."""
+    home = Path.home()
+    candidates = {
+        "antigravity": home / ".gemini" / "config" / "skills" / "video-guide-maker",
+        "claude": home / ".claude" / "skills" / "video-guide-maker",
+        "codex": home / ".codex" / "skills" / "video-guide-maker",
+        "cursor": home / ".cursor" / "skills" / "video-guide-maker",
+    }
+
+    selected = candidates.items() if target == "all" else [(target, candidates[target])]
+    files_to_copy = [
+        "SKILL.md", "AGENTS.md", "engine.py", "auto_recipe.py", "tool_executor.py",
+        "mcp_server.py", "bootstrap.py", "pyproject.toml", "requirements.txt",
+    ]
+    dirs_to_copy = ["schemas", "examples", "video_guide_skill"]
+
+    for agent_name, dest in selected:
+        parent_root = dest.parent.parent
+        # Only install globally for tools whose config dir exists (unless explicitly named)
+        if target == "all" and not parent_root.exists() and agent_name != "antigravity":
+            continue
+        dest.mkdir(parents=True, exist_ok=True)
+        for fname in files_to_copy:
+            src = HERE / fname
+            if src.exists():
+                shutil.copy2(src, dest / fname)
+        for dname in dirs_to_copy:
+            src_d = HERE / dname
+            if src_d.exists():
+                shutil.copytree(src_d, dest / dname, dirs_exist_ok=True)
+        print(f"{OK} Installed skill for {agent_name} -> {dest}")
+
+
+def print_mcp_snippets() -> None:
+    venv_py = (VENV / ("Scripts/python.exe" if IS_WIN else "bin/python")).as_posix()
+    mcp_py = (HERE / "mcp_server.py").as_posix()
+    print("\n--- Ready-to-Paste MCP Configuration (Claude Desktop / Claude Code / Cursor / Antigravity) ---")
+    import json
+    cfg = {
+        "mcpServers": {
+            "video-guide": {
+                "command": venv_py,
+                "args": [mcp_py],
+            }
+        }
+    }
+    print(json.dumps(cfg, indent=2))
+    print("--------------------------------------------------------------------------------------------\n")
+
 
 def print_cheatsheet() -> None:
-    venv_python = (
-        ".venv\\Scripts\\python" if IS_WIN else ".venv/bin/python"
-    )
-    uv_run_prefix = "uv run --with opencv-python,pillow,imageio-ffmpeg,edge-tts,numpy"
+    venv_py = ".venv\\Scripts\\python.exe" if IS_WIN else ".venv/bin/python"
+    print(f"""
+========================================================================
+  Setup complete! Video Guide Skill is ready.
+========================================================================
 
-    print("""
-╔══════════════════════════════════════════════════════════════════════╗
-║  ✅  Setup complete! Video Guide Skill is ready.                     ║
-╠══════════════════════════════════════════════════════════════════════╣
-║                                                                      ║
-║  QUICKSTART — just drop a video path:                                ║
-║                                                                      ║
-║  echo '{"tool":"create_guide",                                       ║
-║         "video_path":"C:/rec.mp4",                                   ║
-║         "output_path":"C:/guide.mp4"}' | python tool_executor.py    ║
-║                                                                      ║
-║  MCP SERVER (Claude Code / Cursor):                                  ║
-║    python mcp_server.py                                              ║
-║                                                                      ║
-║  DIRECT IMPORT (any Python script):                                  ║
-║    from tool_executor import create_guide                            ║
-║    result = create_guide("C:/rec.mp4", "C:/guide.mp4")              ║
-║                                                                      ║
-║  DOCS: README.md                                                     ║
-╚══════════════════════════════════════════════════════════════════════╝
+  END-USER INPUT NEEDED: Just the video path (+ optional flow notes).
+  No manual recipe JSON!
+
+  START PIPELINE (extracts 3 FPS frames + analyzes all frames + storyboards):
+    echo '{{"tool":"create_guide","video_path":"C:/rec.mp4"}}' | {venv_py} tool_executor.py
+
+  START MCP SERVER (Claude Code / Cursor / Antigravity):
+    {venv_py} mcp_server.py
+
+  INSTALL SKILL TO GLOBAL AGENT DIRS:
+    {venv_py} bootstrap.py --install-skill
+
+  PRINT EXACT MCP JSON CONFIG:
+    {venv_py} bootstrap.py --print-mcp
+========================================================================
 """)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Main
-# ──────────────────────────────────────────────────────────────────────────────
-
 def main() -> None:
-    print(BANNER)
+    parser = argparse.ArgumentParser(description="Video Guide Skill Bootstrap Setup")
+    parser.add_argument(
+        "--install-skill",
+        nargs="?",
+        const="all",
+        choices=["all", "antigravity", "claude", "codex", "cursor"],
+        help="Copy skill + scripts into agent skill folders (~/.gemini, ~/.claude, ~/.codex, ~/.cursor)",
+    )
+    parser.add_argument("--print-mcp", action="store_true", help="Print MCP config JSON with resolved paths")
+    args = parser.parse_args()
+
+    print("\n=== Video Guide Skill — Bootstrap Setup ===\n")
     check_python()
     uv = ensure_uv()
     setup_venv(uv)
-    verify_tools(uv)
+    verify_all()
+    if args.install_skill:
+        install_skill_to_agents(args.install_skill)
+    if args.print_mcp:
+        print_mcp_snippets()
     print_cheatsheet()
 
 
