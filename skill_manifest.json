@@ -6,7 +6,7 @@
   "description": "Zero-manual-recipe AI agent skill: user supplies only a raw screen recording video path (plus optional editing flow notes). The agent extracts 3 FPS frames via FFmpeg, analyzes all extracted frames across the entire video, inspects UI storyboards and key frames, authors timed narration + HUD overlays, validates voice timing, and renders a polished MP4 with SRT captions.",
   "author": "Krishna Vikash ERP",
   "license": "MIT",
-  "homepage": "https://github.com/YOUR_USERNAME/video-guide-skill",
+  "homepage": "https://github.com/Bikash-Meher/video-guide-skill",
   "entrypoint_skill_doc": "SKILL.md",
   "tools": [
     {

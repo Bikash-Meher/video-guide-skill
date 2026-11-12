@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/YOUR_USERNAME/video-guide-skill/schemas/recipe.schema.json",
+  "$id": "https://github.com/Bikash-Meher/video-guide-skill/schemas/recipe.schema.json",
   "title": "Video Guide Engine Recipe",
   "description": "Recipe JSON consumed directly by engine.py. Authored by the AI agent after extracting 3 FPS frames and analyzing all frames of the recording.",
   "type": "object",

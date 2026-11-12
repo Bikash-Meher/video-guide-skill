@@ -35,8 +35,8 @@ video-guide-mcp = "video_guide_skill.mcp_entry:main"
 video-guide-tool = "tool_executor:main"
 
 [project.urls]
-Homepage = "https://github.com/YOUR_USERNAME/video-guide-skill"
-Issues = "https://github.com/YOUR_USERNAME/video-guide-skill/issues"
+Homepage = "https://github.com/Bikash-Meher/video-guide-skill"
+Issues = "https://github.com/Bikash-Meher/video-guide-skill/issues"
 
 [tool.hatch.build.targets.wheel]
 only-include = [

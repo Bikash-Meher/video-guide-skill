@@ -2,7 +2,7 @@
 
 > **Drop a screen recording video path — let ANY AI coding agent turn it into a narrated, HUD-annotated user guide MP4.**
 
-[![CI](https://github.com/YOUR_USERNAME/video-guide-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/video-guide-skill/actions)
+[![CI](https://github.com/Bikash-Meher/video-guide-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/Bikash-Meher/video-guide-skill/actions)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
 [![Agent Skills](https://img.shields.io/badge/Agent_Skill-SKILL.md-purple)](SKILL.md)
 [![MCP](https://img.shields.io/badge/MCP-stdio-green)](https://modelcontextprotocol.io/)
@@ -45,7 +45,7 @@ The skill guides your AI agent to do **100% of the heavy lifting**:
 Clone the repository and run **one command** — Python `>= 3.11` is the only prerequisite:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/video-guide-skill.git
+git clone https://github.com/Bikash-Meher/video-guide-skill.git
 cd video-guide-skill
 
 # Universal (Windows / macOS / Linux)
